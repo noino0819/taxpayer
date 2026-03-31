@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { QRCodeSVG } from 'qrcode.react'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
+import { Tooltip } from '@/components/common/Tooltip'
 import { useAuthStore } from '@/stores/authStore'
 import { useAccountStats, useClassroomTransactions, useJobs, useFines } from '@/hooks/useQueries'
 import {
@@ -8,6 +11,8 @@ import {
   HiOutlineUserGroup,
   HiOutlineBriefcase,
   HiOutlineExclamationTriangle,
+  HiOutlineInformationCircle,
+  HiOutlineQrCode,
 } from 'react-icons/hi2'
 
 const containerVariants = {
@@ -18,6 +23,8 @@ const containerVariants = {
 export function DashboardPage() {
   const { currentClassroom } = useAuthStore()
   const currency = currentClassroom?.currency_name || '미소'
+  const [showQR, setShowQR] = useState(false)
+  const inviteUrl = `${window.location.origin}/login?tab=student&code=${currentClassroom?.invite_code || ''}`
 
   const { data: stats } = useAccountStats()
   const { data: transactions } = useClassroomTransactions(5)
@@ -137,7 +144,12 @@ export function DashboardPage() {
           <div className="space-y-4">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-text-secondary">양극화 지수 (지니계수)</span>
+                <span className="text-text-secondary inline-flex items-center gap-1">
+                  양극화 지수 (지니계수)
+                  <Tooltip content="지니계수는 학급 내 자산 불평등 정도를 0~1 사이 숫자로 나타냅니다. 0에 가까울수록 학생들의 자산이 고르게 분포되어 있고, 1에 가까울수록 소수에게 자산이 편중되어 있다는 뜻입니다.">
+                    <HiOutlineInformationCircle className="w-4 h-4 text-text-tertiary cursor-help" />
+                  </Tooltip>
+                </span>
                 <span className="font-medium">{stats?.giniIndex ?? 0}</span>
               </div>
               <div className="h-2 bg-surface-tertiary rounded-full overflow-hidden">

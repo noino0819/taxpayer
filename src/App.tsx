@@ -9,6 +9,8 @@ import { TeacherLayout } from '@/components/layout/TeacherLayout'
 import { StudentLayout } from '@/components/layout/StudentLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { TeacherRegisterPage } from '@/pages/auth/TeacherRegisterPage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 
 const DashboardPage = lazy(() => import('@/pages/teacher/DashboardPage').then(m => ({ default: m.DashboardPage })))
 const StudentsPage = lazy(() => import('@/pages/teacher/StudentsPage').then(m => ({ default: m.StudentsPage })))
@@ -90,6 +92,8 @@ export default function App() {
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register/teacher" element={<TeacherRegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             <Route
               path="/teacher"

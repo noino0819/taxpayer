@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores/authStore'
+import { useNotifications } from '@/hooks/useQueries'
 import {
   HiOutlineHome,
   HiOutlineUserGroup,
@@ -31,6 +32,8 @@ export function TeacherLayout() {
   const { user, currentClassroom, logout } = useAuthStore()
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { data: notifications } = useNotifications()
+  const unreadCount = (notifications ?? []).filter((n: any) => !n.is_read).length
 
   const handleLogout = () => {
     logout()
@@ -115,7 +118,9 @@ export function TeacherLayout() {
               className="p-2 rounded-xl hover:bg-surface-tertiary relative"
             >
               <HiOutlineBellAlert className="w-5 h-5 text-text-secondary" />
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-danger-500" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-danger-500" />
+              )}
             </NavLink>
           </div>
         </div>

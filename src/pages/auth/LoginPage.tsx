@@ -129,6 +129,11 @@ export function LoginPage() {
                   icon={<HiOutlineLockClosed className="w-5 h-5" />}
                   required
                 />
+                <div className="flex justify-end -mt-1">
+                  <Link to="/forgot-password" className="text-xs text-text-tertiary hover:text-primary-500 transition-colors">
+                    비밀번호를 잊으셨나요?
+                  </Link>
+                </div>
                 <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
                   로그인
                 </Button>
