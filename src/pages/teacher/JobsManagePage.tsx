@@ -57,31 +57,6 @@ function getSeoulDayOfWeek(): number {
   return map[dow] ?? 1
 }
 
-function toDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-function getLastScheduledPayday(schedule: PaySchedule): Date {
-  const today = getSeoulToday()
-
-  if (schedule.frequency === 'monthly') {
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), schedule.dayOfMonth)
-    if (thisMonth <= today) return thisMonth
-    return new Date(today.getFullYear(), today.getMonth() - 1, schedule.dayOfMonth)
-  }
-
-  const currentDay = getSeoulDayOfWeek()
-  let daysSince = currentDay - schedule.dayOfWeek
-  if (daysSince < 0) daysSince += 7
-  const lastPayWeekDay = new Date(today.getTime() - daysSince * 86400000)
-
-  if (schedule.frequency === 'weekly') return lastPayWeekDay
-
-  const weekNum = Math.floor((lastPayWeekDay.getTime() - new Date(lastPayWeekDay.getFullYear(), 0, 1).getTime()) / (7 * 86400000))
-  if (weekNum % 2 === 0) return lastPayWeekDay
-  return new Date(lastPayWeekDay.getTime() - 7 * 86400000)
-}
-
 function getNextPayday(schedule: PaySchedule): string {
   const today = getSeoulToday()
 
@@ -173,58 +148,6 @@ export function JobsManagePage() {
   }, [assignedStudents, excludedStudents])
 
   const payCount = assignedStudents.length - excludedStudents.size
-
-  // ═══════════════════════════════════════════
-  // 자동 월급 지급
-  // ═══════════════════════════════════════════
-
-  const autoPayStatus = useRef<'idle' | 'running' | 'done'>('idle')
-
-  useEffect(() => {
-    if (autoPayStatus.current !== 'idle') return
-    if (!user || !classroomId || !moduleConfigs || assignedStudents.length === 0) return
-
-    const lastPayday = getLastScheduledPayday(savedSchedule)
-    const paydayStr = toDateStr(lastPayday)
-    const todayStr = toDateStr(getSeoulToday())
-
-    if (paydayStr > todayStr) return
-    if (lastPaidAt && lastPaidAt >= paydayStr) return
-
-    autoPayStatus.current = 'running'
-
-    const items = assignedStudents
-      .filter((s) => !savedExcludedUserIds.includes(s.userId))
-      .map((s) => ({ userId: s.userId, amount: s.salary, jobName: s.jobName }))
-
-    const run = async () => {
-      try {
-        if (items.length > 0) {
-          const total = items.reduce((sum, i) => sum + i.amount, 0)
-          await paySalaries(classroomId, items, user.id)
-          toast.success(`월급일! ${items.length}명에게 총 ${total.toLocaleString()}${currency} 자동 지급 완료`)
-        }
-        await updateModuleSettings(classroomId, 'job', { lastPaidAt: paydayStr, excludedUserIds: [] })
-        queryClient.invalidateQueries({ queryKey: ['accounts'] })
-        queryClient.invalidateQueries({ queryKey: ['transactions'] })
-        queryClient.invalidateQueries({ queryKey: ['my-account'] })
-        queryClient.invalidateQueries({ queryKey: ['account-stats'] })
-        queryClient.invalidateQueries({ queryKey: ['monthly-stats'] })
-        queryClient.invalidateQueries({ queryKey: ['module-configs'] })
-        autoPayStatus.current = 'done'
-      } catch {
-        autoPayStatus.current = 'idle'
-        toast.error('자동 월급 지급에 실패했습니다.')
-      }
-    }
-
-    run()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, classroomId, moduleConfigs, assignedStudents, savedSchedule, lastPaidAt, savedExcludedUserIds])
-
-  // ═══════════════════════════════════════════
-  // 핸들러
-  // ═══════════════════════════════════════════
 
   const getAssignments = (jobId: string) =>
     (assignments ?? []).filter((a: any) => a.job_id === jobId)
@@ -332,7 +255,10 @@ export function JobsManagePage() {
       await paySalaryMutation.mutateAsync({ items, approvedBy: user.id })
       await updateSettingsMutation.mutateAsync({
         moduleName: 'job',
-        settings: { lastPaidAt: toDateStr(getSeoulToday()), excludedUserIds: [] },
+        settings: {
+          lastPaidAt: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date()),
+          excludedUserIds: [],
+        },
       })
       toast.success(`${items.length}명에게 총 ${totalSalary.toLocaleString()}${currency} 월급 지급 완료!`)
       setShowPayModal(false)
