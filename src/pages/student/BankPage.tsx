@@ -50,6 +50,9 @@ export function BankPage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <h2 className="text-xl font-bold">🏦 은행</h2>
+      <p className="text-xs text-text-tertiary -mt-3 leading-relaxed">
+        돈을 맡기면 시간이 지나서 이자(추가 돈)를 받을 수 있어요! 맡기는 기간이 끝나면 원래 금액 + 이자를 돌려받아요.
+      </p>
 
       {(mySavings ?? []).length > 0 && (
         <div>
@@ -62,9 +65,9 @@ export function BankPage() {
                     <div className="w-10 h-10 rounded-2xl bg-accent-100 flex items-center justify-center text-xl">💎</div>
                     <div>
                       <h4 className="font-bold">{s.product.name}</h4>
-                      <p className="text-sm text-text-secondary mt-0.5">원금: {s.principal}{currency}</p>
+                      <p className="text-sm text-text-secondary mt-0.5">맡긴 돈: {s.principal}{currency}</p>
                       <p className="text-xs text-text-tertiary">
-                        만기: {new Date(s.maturity_at).toLocaleDateString('ko-KR')}
+                        돌려받는 날: {new Date(s.maturity_at).toLocaleDateString('ko-KR')}
                       </p>
                     </div>
                   </div>
@@ -90,14 +93,15 @@ export function BankPage() {
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold">{product.name}</h4>
                       <Badge variant={product.type === 'compound' ? 'primary' : 'neutral'}>
-                        {product.type === 'compound' ? '복리' : '단리'}
+                        {product.type === 'compound' ? '복리 (이자에 이자!)' : '단리 (기본)'}
                       </Badge>
                     </div>
                     <p className="text-sm text-text-secondary mt-1">
                       이자율: <span className="font-extrabold text-accent-600">{product.interest_rate}%</span>
+                      <span className="text-xs text-text-tertiary ml-1">(맡긴 돈의 {product.interest_rate}%를 추가로 받아요)</span>
                     </p>
                     <p className="text-xs text-text-tertiary mt-0.5">
-                      최소 {product.min_term_days}일 · {product.conditions}
+                      최소 {product.min_term_days}일 동안 맡겨야 해요 · {product.conditions}
                     </p>
                   </div>
                 </div>
@@ -129,18 +133,18 @@ export function BankPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-text-secondary">유형</span>
                 <Badge variant={selectedProduct.type === 'compound' ? 'primary' : 'neutral'}>
-                  {selectedProduct.type === 'compound' ? '복리' : '단리'}
+                  {selectedProduct.type === 'compound' ? '복리 (이자에 또 이자!)' : '단리 (기본)'}
                 </Badge>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-text-secondary">최소 기간</span>
+                <span className="text-text-secondary">최소 맡기는 기간</span>
                 <span className="font-bold">{selectedProduct.min_term_days}일</span>
               </div>
             </div>
             <Input
-              label={`원금 (${currency})`}
+              label={`맡길 금액 (${currency})`}
               type="number"
-              placeholder="금액을 입력하세요"
+              placeholder="맡길 금액을 입력하세요"
               value={principal}
               onChange={(e) => setPrincipal(e.target.value)}
             />

@@ -181,7 +181,7 @@ function OverviewTab({ currency }: { currency: string }) {
               <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
             </Tooltip>
           </p>
-          <p className="text-2xl font-bold mt-1">{avgStockPrice}</p>
+          <p className="text-2xl font-bold mt-1">{avgStockPrice}{currency}</p>
           <div className="flex items-center gap-2">
             <Badge variant="accent">{stocks?.length ?? 0}종목</Badge>
             {kospiChange !== 0 && (

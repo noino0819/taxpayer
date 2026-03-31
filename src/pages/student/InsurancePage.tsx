@@ -29,6 +29,9 @@ export function InsurancePage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <h2 className="text-xl font-bold">🛡️ 보험</h2>
+      <p className="text-xs text-text-tertiary -mt-3 leading-relaxed">
+        보험은 혹시 모를 상황에 대비하는 거예요. 매달 조금씩 돈(보험료)을 내면, 나중에 특정 조건이 생겼을 때 큰 돈(보상금)을 받을 수 있어요!
+      </p>
 
       {(myContracts ?? []).length > 0 && (
         <div>
@@ -45,7 +48,7 @@ export function InsurancePage() {
                     </div>
                     <p className="text-xs text-text-tertiary mt-0.5">{c.insurance.description}</p>
                     <p className="text-xs text-text-secondary mt-1">
-                      보험료: <span className="font-bold">{c.insurance.premium}{currency}</span>/{c.insurance.payment_type === 'monthly' ? '월' : '일시납'}
+                      내는 돈: <span className="font-bold">{c.insurance.premium}{currency}</span>/{c.insurance.payment_type === 'monthly' ? '매달' : '한 번'}
                     </p>
                   </div>
                 </div>
@@ -70,16 +73,16 @@ export function InsurancePage() {
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold">{product.name}</h4>
                       <Badge variant={product.payment_type === 'monthly' ? 'primary' : 'warning'}>
-                        {product.payment_type === 'monthly' ? '월납' : '일시납'}
+                        {product.payment_type === 'monthly' ? '매달 내기' : '한 번에 내기'}
                       </Badge>
                     </div>
                     <p className="text-sm text-text-secondary mt-1 leading-relaxed">{product.description}</p>
                     <div className="flex gap-4 mt-2 text-xs">
-                      <span>보험료: <span className="font-extrabold">{product.premium}{currency}</span></span>
-                      <span>보상금: <span className="font-extrabold text-accent-600">{product.payout}{currency}</span></span>
+                      <span>내는 돈: <span className="font-extrabold">{product.premium}{currency}</span></span>
+                      <span>받는 돈: <span className="font-extrabold text-accent-600">{product.payout}{currency}</span></span>
                     </div>
                     <p className="text-xs text-text-tertiary mt-1.5 bg-surface-tertiary rounded-xl px-2.5 py-1.5 inline-block">
-                      📋 조건: {product.condition}
+                      📋 이럴 때 보상받아요: {product.condition}
                     </p>
                     <div className="mt-3">
                       <Button

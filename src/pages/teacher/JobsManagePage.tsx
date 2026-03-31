@@ -291,7 +291,7 @@ export function JobsManagePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-extrabold">직업 관리</h1>
-          <p className="text-text-secondary text-sm mt-1 font-bold">직업 생성, 수정, 배정, 월급 설정</p>
+          <p className="text-text-secondary text-sm mt-1 font-bold">직업을 만들고, 학생에게 배정하고, 월급을 지급하세요</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -316,7 +316,7 @@ export function JobsManagePage() {
               <HiOutlineBanknotes className="w-5 h-5 text-primary-600" />
             </div>
             <div>
-              <p className="text-sm text-text-secondary font-bold">월급 지급 주기</p>
+              <p className="text-sm text-text-secondary font-bold">자동 월급 지급 주기</p>
               <p className="text-base font-bold">
                 {PAY_FREQUENCY_OPTIONS.find((o) => o.value === savedSchedule.frequency)?.label}{' '}
                 {savedSchedule.frequency === 'monthly'
@@ -336,10 +336,11 @@ export function JobsManagePage() {
               )}
             </div>
             <button
-              className="p-2 hover:bg-white/60 rounded-xl transition-colors"
+              className="p-2 hover:bg-white/60 rounded-xl transition-colors flex items-center gap-1.5"
               onClick={() => setShowScheduleModal(true)}
             >
               <HiOutlineCog6Tooth className="w-5 h-5 text-text-tertiary" />
+              <span className="text-xs text-text-tertiary font-medium hidden sm:inline">주기 설정</span>
             </button>
           </div>
         </div>
@@ -388,7 +389,7 @@ export function JobsManagePage() {
                     )}
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-sm font-bold text-primary-600">
-                        월급: {job.salary}{currency}
+                        월급 {job.salary}{currency} / 지급 주기당
                       </span>
                       <div className="flex items-center gap-1 text-xs text-text-tertiary">
                         <HiOutlineUserGroup className="w-3.5 h-3.5" />
@@ -396,7 +397,9 @@ export function JobsManagePage() {
                       </div>
                     </div>
                     {assigned.length > 0 && (
-                      <div className="flex gap-1 mt-2 flex-wrap">
+                      <div>
+                        <p className="text-[10px] text-text-tertiary mt-2 mb-1">배정 학생 (클릭하면 다음 월급에서 제외/복원)</p>
+                        <div className="flex gap-1 flex-wrap">
                         {assigned.map((a: any) => {
                           const isExcluded = excludedStudents.has(a.user_id)
                           return (
@@ -414,6 +417,7 @@ export function JobsManagePage() {
                             </button>
                           )
                         })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -539,7 +543,7 @@ export function JobsManagePage() {
       </Modal>
 
       {/* 월급 지급 모달 */}
-      <Modal isOpen={showPayModal} onClose={() => setShowPayModal(false)} title="월급 지급" size="lg">
+      <Modal isOpen={showPayModal} onClose={() => setShowPayModal(false)} title="월급 수동 지급" size="lg">
         <div className="space-y-4">
           {assignedStudents.length === 0 ? (
             <p className="text-sm text-text-tertiary text-center py-6">
@@ -547,9 +551,10 @@ export function JobsManagePage() {
             </p>
           ) : (
             <>
-              <p className="text-sm text-text-secondary">
-                직업이 배정된 학생 목록입니다. 제대로 일하지 않은 학생은 선택 해제하세요.
-              </p>
+              <div className="bg-primary-50 rounded-xl p-3 text-xs text-primary-700 space-y-1">
+                <p className="font-bold">지급 버튼을 누르면 선택된 학생의 통장에 즉시 입금됩니다.</p>
+                <p className="text-primary-600">일을 제대로 하지 않은 학생은 이름을 눌러 선택 해제하세요.</p>
+              </div>
               <div className="space-y-1.5 max-h-72 overflow-y-auto">
                 {assignedStudents.map((student) => {
                   const isIncluded = !excludedStudents.has(student.userId)

@@ -39,8 +39,16 @@ export function TaxManagePage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold">세금 및 벌금 관리</h1>
-        <p className="text-text-secondary text-sm mt-1 font-bold">벌금 승인 및 처리 내역</p>
+        <p className="text-text-secondary text-sm mt-1 font-bold">학생이 신고한 벌금을 승인하거나 거절하세요</p>
       </div>
+
+      <Card className="!bg-surface-tertiary !border-border/30">
+        <p className="text-xs text-text-secondary leading-relaxed">
+          💡 학생이 다른 학생에게 벌금을 신고하면 이곳에 표시됩니다.{' '}
+          <strong>승인</strong>하면 해당 학생의 통장에서 벌금이 자동 차감되고,{' '}
+          <strong>거절</strong>하면 신고가 취소됩니다.
+        </p>
+      </Card>
 
       <Card>
         <div className="flex items-center justify-between mb-4">
@@ -70,16 +78,18 @@ export function TaxManagePage() {
                   <button
                     onClick={() => handleApprove(fine.id, fine.offender?.name)}
                     disabled={approveMutation.isPending}
-                    className="p-2 bg-accent-100 rounded-lg hover:bg-accent-200 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-accent-100 rounded-lg hover:bg-accent-200 transition-colors disabled:opacity-50"
                   >
-                    <HiOutlineCheckCircle className="w-5 h-5 text-accent-600" />
+                    <HiOutlineCheckCircle className="w-4 h-4 text-accent-600" />
+                    <span className="text-xs font-medium text-accent-700">승인</span>
                   </button>
                   <button
                     onClick={() => handleReject(fine.id, fine.offender?.name)}
                     disabled={rejectMutation.isPending}
-                    className="p-2 bg-danger-100 rounded-lg hover:bg-danger-200 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-danger-100 rounded-lg hover:bg-danger-200 transition-colors disabled:opacity-50"
                   >
-                    <HiOutlineXCircle className="w-5 h-5 text-danger-500" />
+                    <HiOutlineXCircle className="w-4 h-4 text-danger-500" />
+                    <span className="text-xs font-medium text-danger-600">거절</span>
                   </button>
                 </div>
               </div>

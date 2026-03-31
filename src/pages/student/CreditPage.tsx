@@ -16,6 +16,13 @@ export function CreditPage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <h2 className="text-xl font-bold">📊 신용등급</h2>
 
+      <Card className="!bg-surface-tertiary !border-border/30">
+        <p className="text-xs text-text-secondary leading-relaxed">
+          💡 신용등급은 <strong>나의 경제 활동 점수</strong>예요! 벌금을 받으면 점수가 내려가고,
+          직업을 성실히 하고 저축을 하면 점수가 올라가요. 등급이 높으면 은행에서 더 좋은 혜택을 받을 수 있어요.
+        </p>
+      </Card>
+
       <Card className="text-center py-8">
         <div className="relative w-36 h-36 mx-auto mb-5">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
@@ -45,7 +52,8 @@ export function CreditPage() {
       </Card>
 
       <Card>
-        <h3 className="font-bold mb-4">등급별 혜택</h3>
+        <h3 className="font-bold mb-2">등급 안내</h3>
+        <p className="text-xs text-text-tertiary mb-4">점수가 높을수록 좋은 등급이에요! 1000점 만점입니다.</p>
         <div className="space-y-2.5">
           {CREDIT_GRADES.map((grade) => {
             const isCurrentGrade = grade.grade === (account?.credit_grade ?? 3)

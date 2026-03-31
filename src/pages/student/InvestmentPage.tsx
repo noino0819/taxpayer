@@ -81,6 +81,9 @@ export function InvestmentPage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <h2 className="text-xl font-bold">투자</h2>
+      <p className="text-xs text-text-tertiary -mt-3 leading-relaxed">
+        주식을 사고팔아 돈을 벌 수 있어요. 가격은 매일 변하니 잘 살펴보고 결정하세요! 돈을 잃을 수도 있으니 신중하게 투자하세요.
+      </p>
 
       {recentEvents.length > 0 && (
         <Card className="!bg-gradient-to-br !from-warning-50/50 !via-surface !to-primary-50/30 !border-warning-200/40">
@@ -118,14 +121,14 @@ export function InvestmentPage() {
 
       {(holdings ?? []).length > 0 && (
         <Card className="!bg-gradient-to-br !from-primary-50 !via-surface !to-accent-50/30 !border-primary-200/60">
-          <h3 className="font-bold mb-3">내 포트폴리오</h3>
+          <h3 className="font-bold mb-3">내 투자 현황</h3>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs text-text-tertiary">총 평가액</p>
+              <p className="text-xs text-text-tertiary">지금 팔면 받는 금액</p>
               <p className="text-2xl font-extrabold">{totalPortfolioValue.toLocaleString()}{currency}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-text-tertiary">총 손익</p>
+              <p className="text-xs text-text-tertiary">번 돈 / 잃은 돈</p>
               <p className={`text-xl font-extrabold ${totalPnl >= 0 ? 'text-accent-600' : 'text-danger-500'}`}>
                 {totalPnl >= 0 ? '+' : ''}{totalPnl.toLocaleString()}{currency}
               </p>
@@ -138,7 +141,7 @@ export function InvestmentPage() {
                 <div key={h.stockId} className="flex items-center justify-between p-3 bg-surface rounded-2xl border border-border/40">
                   <div>
                     <p className="text-sm font-bold">{h.stockName}</p>
-                    <p className="text-xs text-text-tertiary">{h.quantity}주 · 평단 {h.avgPrice}{currency}</p>
+                    <p className="text-xs text-text-tertiary">{h.quantity}주 보유 · 산 가격 평균 {h.avgPrice}{currency}</p>
                   </div>
                   <p className={`text-sm font-extrabold ${pnl >= 0 ? 'text-accent-600' : 'text-danger-500'}`}>
                     {pnl >= 0 ? '+' : ''}{pnl.toLocaleString()}{currency}
@@ -151,7 +154,7 @@ export function InvestmentPage() {
       )}
 
       <div>
-        <h3 className="text-sm font-bold text-text-secondary mb-3">종목 목록</h3>
+        <h3 className="text-sm font-bold text-text-secondary mb-3">주식 목록 (누르면 사고팔 수 있어요)</h3>
         <div className="space-y-3">
           {(stocks ?? []).map((stock) => {
             const change = stock.current_price - stock.previous_price
@@ -222,7 +225,7 @@ export function InvestmentPage() {
                 const pct = selectedStock.previous_price > 0 ? ((change / selectedStock.previous_price) * 100).toFixed(1) : '0.0'
                 return (
                   <p className={`text-sm font-bold mt-1 ${change >= 0 ? 'text-accent-600' : 'text-danger-500'}`}>
-                    전일 대비 {change >= 0 ? '+' : ''}{change} ({pct}%)
+                    어제보다 {change >= 0 ? '+' : ''}{change} ({pct}%)
                   </p>
                 )
               })()}
@@ -233,20 +236,20 @@ export function InvestmentPage() {
                 variant={tradeType === 'buy' ? 'primary' : 'ghost'}
                 onClick={() => setTradeType('buy')}
               >
-                매수
+                사기 (매수)
               </Button>
               <Button
                 className="flex-1"
                 variant={tradeType === 'sell' ? 'danger' : 'ghost'}
                 onClick={() => setTradeType('sell')}
               >
-                매도
+                팔기 (매도)
               </Button>
             </div>
             <Input
-              label="수량"
+              label="몇 주를 살까요?"
               type="number"
-              placeholder="주수를 입력하세요"
+              placeholder="예: 1, 2, 3..."
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
             />
@@ -266,7 +269,7 @@ export function InvestmentPage() {
               onClick={handleTrade}
               isLoading={buyMutation.isPending || sellMutation.isPending}
             >
-              {tradeType === 'buy' ? '매수하기' : '매도하기'}
+              {tradeType === 'buy' ? '사기' : '팔기'}
             </Button>
           </div>
         )}

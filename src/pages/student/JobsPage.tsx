@@ -59,7 +59,7 @@ export function JobsPage() {
             </div>
             <p className="text-xs text-text-tertiary mt-1 line-clamp-2">{job.description}</p>
             <div className="flex items-center justify-between mt-2.5">
-              <span className="text-sm font-extrabold text-primary-600">월급 {job.salary}{currency}</span>
+              <span className="text-sm font-extrabold text-primary-600">월급 {job.salary}{currency} / 지급일마다</span>
               {!myAssignment && (
                 <Button
                   size="sm"
@@ -80,6 +80,9 @@ export function JobsPage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <h2 className="text-xl font-bold">💼 직업</h2>
+      <p className="text-xs text-text-tertiary -mt-3 leading-relaxed">
+        직업에 지원하면 선생님이 배정해줘요. 직업을 맡으면 정해진 주기마다 월급을 받을 수 있어요!
+      </p>
 
       {myAssignment && (
         <Card className="!bg-gradient-to-br !from-primary-100 !via-primary-50 !to-accent-50 !border-primary-200/80">
@@ -108,7 +111,8 @@ export function JobsPage() {
 
       {requiredJobs.length > 0 && (
         <div>
-          <h3 className="text-sm font-bold text-text-secondary mb-3">필수 직업</h3>
+          <h3 className="text-sm font-bold text-text-secondary mb-1">필수 직업</h3>
+          <p className="text-xs text-text-tertiary mb-3">반드시 누군가가 맡아야 하는 직업이에요</p>
           <div className="space-y-3">
             {requiredJobs.map((job) => renderJobCard(job, 'primary'))}
           </div>
@@ -117,7 +121,8 @@ export function JobsPage() {
 
       {optionalJobs.length > 0 && (
         <div>
-          <h3 className="text-sm font-bold text-text-secondary mb-3">선택 직업</h3>
+          <h3 className="text-sm font-bold text-text-secondary mb-1">선택 직업</h3>
+          <p className="text-xs text-text-tertiary mb-3">하고 싶은 직업을 골라서 지원할 수 있어요</p>
           <div className="space-y-3">
             {optionalJobs.map((job) => renderJobCard(job, 'accent'))}
           </div>

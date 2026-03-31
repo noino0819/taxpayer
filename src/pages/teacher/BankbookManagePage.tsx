@@ -101,7 +101,7 @@ export function BankbookManagePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-extrabold">통장 관리</h1>
-          <p className="text-text-secondary text-sm mt-1 font-bold">학급 전체 입출금 관리</p>
+          <p className="text-text-secondary text-sm mt-1 font-bold">여러 학생에게 한 번에 입금하거나 출금하세요</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -231,13 +231,13 @@ export function BankbookManagePage() {
           <Input
             label={`금액 (${currency})`}
             type="number"
-            placeholder="입금할 금액"
+            placeholder={transferType === 'deposit' ? '입금할 금액' : '출금할 금액'}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
           <Input
-            label="사유"
-            placeholder="예: 월급 지급, 세금 징수"
+            label="사유 (학생 거래 내역에 표시됨)"
+            placeholder={transferType === 'deposit' ? '예: 보상, 이벤트 당첨' : '예: 세금 징수, 벌금'}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />

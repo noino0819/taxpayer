@@ -35,6 +35,9 @@ export function RealEstatePage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <h2 className="text-xl font-bold">🏠 부동산 (자리)</h2>
+      <p className="text-xs text-text-tertiary -mt-3 leading-relaxed">
+        교실에서 원하는 자리를 살 수 있어요! 빈 자리를 누르면 구매할 수 있어요.
+      </p>
 
       <Card>
         <div className="flex items-center justify-between mb-4">
