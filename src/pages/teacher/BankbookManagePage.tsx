@@ -90,7 +90,7 @@ export function BankbookManagePage() {
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-text-secondary">
-        <p className="text-lg font-semibold text-danger-500 mb-2">데이터를 불러올 수 없습니다</p>
+        <p className="text-lg font-bold text-danger-500 mb-2">데이터를 불러올 수 없습니다</p>
         <p className="text-sm">네트워크 상태를 확인하고 다시 시도해주세요.</p>
       </div>
     )
@@ -100,8 +100,8 @@ export function BankbookManagePage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">통장 관리</h1>
-          <p className="text-text-secondary text-sm mt-1">학급 전체 입출금 관리</p>
+          <h1 className="text-2xl font-extrabold">통장 관리</h1>
+          <p className="text-text-secondary text-sm mt-1 font-bold">학급 전체 입출금 관리</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -124,35 +124,35 @@ export function BankbookManagePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-100 to-blue-50 border-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-primary-100 flex items-center justify-center">
               <HiOutlineBanknotes className="w-5 h-5 text-primary-600" />
             </div>
             <div>
-              <p className="text-sm text-text-secondary">총 통화량</p>
+              <p className="text-sm text-text-secondary font-bold">총 통화량</p>
               <p className="text-xl font-bold">{(stats?.totalBalance ?? 0).toLocaleString()}{currency}</p>
             </div>
           </div>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-accent-100 to-accent-50 border-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent-100 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-accent-100 flex items-center justify-center">
               <HiOutlineBanknotes className="w-5 h-5 text-accent-600" />
             </div>
             <div>
-              <p className="text-sm text-text-secondary">평균 잔액</p>
+              <p className="text-sm text-text-secondary font-bold">평균 잔액</p>
               <p className="text-xl font-bold">{stats?.avgBalance ?? 0}{currency}</p>
             </div>
           </div>
         </Card>
-        <Card>
+        <Card className="bg-gradient-to-br from-warning-100 to-warning-50 border-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-warning-100 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-warning-100 flex items-center justify-center">
               <HiOutlineBanknotes className="w-5 h-5 text-warning-500" />
             </div>
             <div>
-              <p className="text-sm text-text-secondary">학생 수</p>
+              <p className="text-sm text-text-secondary font-bold">학생 수</p>
               <p className="text-xl font-bold">{stats?.studentCount ?? 0}명</p>
             </div>
           </div>
@@ -160,7 +160,7 @@ export function BankbookManagePage() {
       </div>
 
       <Card>
-        <h3 className="font-semibold mb-4">학생별 잔액</h3>
+        <h3 className="font-bold mb-4">학생별 잔액</h3>
         <div className="space-y-2">
           {students.length === 0 && (
             <p className="text-sm text-text-tertiary text-center py-4">학생이 없습니다.</p>
@@ -170,7 +170,7 @@ export function BankbookManagePage() {
             .map((student: any, idx: number) => (
               <div
                 key={student.id}
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-tertiary transition-colors"
+                className="flex items-center gap-3 p-2 rounded-2xl hover:bg-surface-tertiary transition-colors"
               >
                 <span className="w-6 text-center text-sm text-text-tertiary font-medium">{idx + 1}</span>
                 <span className="text-2xl">{student.avatar}</span>
@@ -182,7 +182,7 @@ export function BankbookManagePage() {
                       style={{ width: `${Math.min((student.balance / (stats?.avgBalance ? stats.avgBalance * 2 : 250)) * 100, 100)}%` }}
                     />
                   </div>
-                  <span className="text-sm font-semibold w-20 text-right">
+                  <span className="text-sm font-bold w-20 text-right">
                     {student.balance}{currency}
                   </span>
                 </div>
@@ -215,10 +215,10 @@ export function BankbookManagePage() {
                   <button
                     key={student.id}
                     onClick={() => toggleStudent(student.id)}
-                    className={`flex items-center gap-2 p-2 rounded-xl border text-sm transition-colors text-left ${
+                    className={`flex items-center gap-2 p-2 rounded-2xl border text-sm transition-colors text-left ${
                       selectedStudents.includes(student.id)
                         ? 'border-primary-400 bg-primary-50'
-                        : 'border-border hover:bg-surface-tertiary'
+                        : 'border-border/50 hover:bg-surface-tertiary'
                     }`}
                   >
                     <span>{student.avatar}</span>

@@ -35,8 +35,8 @@ export function NotificationsPage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">알림</h1>
-          <p className="text-text-secondary text-sm mt-1">
+          <h1 className="text-2xl font-extrabold">알림</h1>
+          <p className="text-text-secondary text-sm mt-1 font-bold">
             {unread.length > 0 ? `읽지 않은 알림 ${unread.length}건` : '모든 알림을 확인했습니다'}
           </p>
         </div>
@@ -71,9 +71,9 @@ export function NotificationsPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       {typeInfo && <Badge variant={typeInfo.variant}>{typeInfo.label}</Badge>}
-                      <h4 className="text-sm font-semibold">{noti.title}</h4>
+                      <h4 className="text-sm font-bold">{noti.title}</h4>
                     </div>
-                    <p className="text-sm text-text-secondary">{noti.message}</p>
+                    <p className="text-sm text-text-secondary font-bold">{noti.message}</p>
                     <p className="text-xs text-text-tertiary mt-1">
                       {new Date(noti.created_at).toLocaleDateString('ko-KR')}
                     </p>

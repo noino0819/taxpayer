@@ -38,13 +38,13 @@ export function TaxManagePage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">세금 및 벌금 관리</h1>
-        <p className="text-text-secondary text-sm mt-1">벌금 승인 및 처리 내역</p>
+        <h1 className="text-2xl font-extrabold">세금 및 벌금 관리</h1>
+        <p className="text-text-secondary text-sm mt-1 font-bold">벌금 승인 및 처리 내역</p>
       </div>
 
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">벌금 승인 대기</h3>
+          <h3 className="font-bold">벌금 승인 대기</h3>
           <Badge variant="danger">{(pendingFines ?? []).length}건</Badge>
         </div>
         {(pendingFines ?? []).length === 0 ? (
@@ -54,11 +54,11 @@ export function TaxManagePage() {
             {(pendingFines ?? []).map((fine: any) => (
               <div
                 key={fine.id}
-                className="flex items-center justify-between p-3 rounded-xl border border-warning-200 bg-warning-50"
+                className="flex items-center justify-between p-3 rounded-2xl border border-warning-200 bg-warning-50"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">{fine.offender?.name ?? '알 수 없음'}</span>
+                    <span className="font-bold text-sm">{fine.offender?.name ?? '알 수 없음'}</span>
                     <Badge variant="danger">{fine.amount}{currency}</Badge>
                   </div>
                   <p className="text-xs text-text-secondary mt-0.5">{fine.reason}</p>
@@ -89,7 +89,7 @@ export function TaxManagePage() {
       </Card>
 
       <Card>
-        <h3 className="font-semibold mb-4">벌금 처리 내역</h3>
+        <h3 className="font-bold mb-4">벌금 처리 내역</h3>
         {processedFines.length === 0 ? (
           <p className="text-sm text-text-tertiary text-center py-4">처리된 벌금 내역이 없습니다.</p>
         ) : (
@@ -97,7 +97,7 @@ export function TaxManagePage() {
             {processedFines.map((fine: any) => (
               <div
                 key={fine.id}
-                className="flex items-center justify-between p-3 border-b border-border-light last:border-0"
+                className="flex items-center justify-between p-3 border-b border-border/50 last:border-0"
               >
                 <div>
                   <div className="flex items-center gap-2">
@@ -110,7 +110,7 @@ export function TaxManagePage() {
                     {fine.reason} · {new Date(fine.created_at).toLocaleDateString('ko-KR')}
                   </p>
                 </div>
-                <span className="text-sm font-semibold">{fine.amount}{currency}</span>
+                <span className="text-sm font-bold">{fine.amount}{currency}</span>
               </div>
             ))}
           </div>

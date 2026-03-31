@@ -79,8 +79,8 @@ export function StudentsPage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">학생 관리</h1>
-          <p className="text-text-secondary text-sm mt-1">총 {students.length}명</p>
+          <h1 className="text-2xl font-extrabold">학생 관리</h1>
+          <p className="text-text-secondary text-sm mt-1 font-bold">총 {students.length}명</p>
         </div>
         <Button icon={<HiOutlinePlusCircle className="w-5 h-5" />} onClick={() => setShowAddModal(true)}>
           학생 추가
@@ -98,7 +98,7 @@ export function StudentsPage() {
             <div className="bg-warning-50 border border-warning-200 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">⏳</span>
-                <h3 className="font-semibold text-warning-800">
+                <h3 className="font-bold text-warning-800">
                   가입 승인 대기 ({pendingMembers!.length}명)
                 </h3>
               </div>
@@ -106,7 +106,7 @@ export function StudentsPage() {
                 {pendingMembers!.map((m) => (
                   <div
                     key={m.id}
-                    className="flex items-center justify-between bg-surface rounded-xl px-4 py-3 border border-border"
+                    className="flex items-center justify-between bg-surface rounded-2xl px-4 py-3 border border-border/50"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{m.user?.avatar_preset_id || '😊'}</span>
@@ -183,10 +183,10 @@ export function StudentsPage() {
                 <span className="text-3xl">{student.avatar}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-semibold">{student.name}</h4>
+                    <h4 className="font-bold">{student.name}</h4>
                   </div>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="text-sm text-text-secondary">
+                    <span className="text-sm text-text-secondary font-bold">
                       {student.balance.toLocaleString()}{currency}
                     </span>
                     {creditInfo && (
@@ -219,14 +219,14 @@ export function StudentsPage() {
               <span className="text-5xl">{selectedStudent.avatar}</span>
               <h3 className="text-xl font-bold mt-2">{selectedStudent.name}</h3>
             </div>
-            <div className="bg-surface-tertiary rounded-xl p-4 space-y-3">
+            <div className="bg-surface-tertiary rounded-2xl p-4 space-y-3 border border-border/50">
               <div className="flex justify-between">
-                <span className="text-text-secondary">잔액</span>
-                <span className="font-semibold">{selectedStudent.balance}{currency}</span>
+                <span className="text-text-secondary font-bold">잔액</span>
+                <span className="font-bold">{selectedStudent.balance}{currency}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-secondary">신용등급</span>
-                <span className="font-semibold">{selectedStudent.creditGrade}등급</span>
+                <span className="text-text-secondary font-bold">신용등급</span>
+                <span className="font-bold">{selectedStudent.creditGrade}등급</span>
               </div>
             </div>
             <Input
@@ -260,14 +260,14 @@ export function StudentsPage() {
 
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="학생 추가">
         <div className="space-y-4">
-          <div className="bg-primary-50 rounded-xl p-4 text-center">
-            <p className="text-sm text-text-secondary mb-2">학급 초대 코드를 학생에게 알려주세요</p>
+          <div className="bg-primary-50 rounded-2xl p-4 text-center border border-border/50">
+            <p className="text-sm text-text-secondary mb-2 font-bold">학급 초대 코드를 학생에게 알려주세요</p>
             <p className="text-3xl font-bold text-primary-600 tracking-widest">
               {currentClassroom?.invite_code}
             </p>
           </div>
           <div className="flex flex-col items-center gap-3 py-2">
-            <p className="text-sm text-text-secondary">또는 QR 코드를 스캔하세요</p>
+            <p className="text-sm text-text-secondary font-bold">또는 QR 코드를 스캔하세요</p>
             <QRCodeSVG
               value={`${window.location.origin}/register/student?code=${currentClassroom?.invite_code || ''}`}
               size={160}

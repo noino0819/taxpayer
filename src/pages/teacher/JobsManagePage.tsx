@@ -110,8 +110,8 @@ export function JobsManagePage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">직업 관리</h1>
-          <p className="text-text-secondary text-sm mt-1">직업 생성, 수정, 배정, 월급 설정</p>
+          <h1 className="text-2xl font-extrabold">직업 관리</h1>
+          <p className="text-text-secondary text-sm mt-1 font-bold">직업 생성, 수정, 배정, 월급 설정</p>
         </div>
         <Button icon={<HiOutlinePlusCircle className="w-5 h-5" />} onClick={openCreateModal}>
           직업 추가
@@ -126,12 +126,12 @@ export function JobsManagePage() {
               <Card key={job.id} padding="sm">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold">{job.name}</h4>
+                    <h4 className="font-bold">{job.name}</h4>
                     {job.description && (
                       <p className="text-xs text-text-tertiary mt-1 line-clamp-2">{job.description}</p>
                     )}
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-sm font-medium text-primary-600">
+                      <span className="text-sm font-bold text-primary-600">
                         월급: {job.salary}{currency}
                       </span>
                       <div className="flex items-center gap-1 text-xs text-text-tertiary">
