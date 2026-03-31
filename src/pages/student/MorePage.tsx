@@ -91,7 +91,7 @@ export function MorePage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden mt-3"
+              className="overflow-clip mt-3"
             >
               <EmojiAvatarPicker
                 value={user?.avatar_preset_id ?? '😊'}

@@ -30,7 +30,7 @@ export function EmojiAvatarPicker({ value, onChange, size = 'md' }: EmojiAvatarP
     <div className="space-y-2">
       <div
         ref={tabsRef}
-        className="flex gap-1 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1"
+        className="flex gap-1 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1"
       >
         {EMOJI_CATEGORIES.map((cat) => (
           <button
@@ -57,15 +57,15 @@ export function EmojiAvatarPicker({ value, onChange, size = 'md' }: EmojiAvatarP
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.15 }}
-          className={`${maxH} overflow-y-auto rounded-xl bg-surface-tertiary/50 p-2 border border-border/30`}
+          className={`${maxH} overflow-y-auto no-scrollbar rounded-xl bg-surface-tertiary/50 p-3 border border-border/30`}
         >
-          <div className={`grid ${gridCols} gap-1`}>
+          <div className={`grid ${gridCols} gap-0.5 place-items-center`}>
             {category.emojis.map((emoji, idx) => (
               <button
                 key={`${emoji}-${idx}`}
                 type="button"
                 onClick={() => onChange(emoji)}
-                className={`${emojiSize} rounded-xl transition-all ${
+                className={`${emojiSize} rounded-xl transition-all leading-none flex items-center justify-center aspect-square ${
                   value === emoji
                     ? 'bg-primary-100 ring-2 ring-primary-500 scale-110'
                     : 'hover:bg-surface-tertiary active:scale-95'
