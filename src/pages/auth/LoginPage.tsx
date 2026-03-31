@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
@@ -10,15 +10,25 @@ import { HiOutlineEnvelope, HiOutlineLockClosed } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
 export function LoginPage() {
-  const [loginType, setLoginType] = useState<'teacher' | 'student'>('teacher')
+  const [searchParams] = useSearchParams()
+  const [loginType, setLoginType] = useState<'teacher' | 'student'>(
+    searchParams.get('tab') === 'student' ? 'student' : 'teacher',
+  )
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [studentName, setStudentName] = useState('')
   const [pin, setPin] = useState('')
-  const [inviteCode, setInviteCode] = useState('')
+  const [inviteCode, setInviteCode] = useState(searchParams.get('code')?.toUpperCase() || '')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { setUser, setCurrentClassroom } = useAuthStore()
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    const code = searchParams.get('code')
+    if (tab === 'student') setLoginType('student')
+    if (code) setInviteCode(code.toUpperCase())
+  }, [searchParams])
 
   const handleTeacherLogin = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { QRCodeSVG } from 'qrcode.react'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
@@ -44,6 +45,8 @@ export function SettingsPage() {
   const { modules, setModule, syncFromConfigs } = useModuleStore()
   const [currencyName, setCurrencyName] = useState(currentClassroom?.currency_name || '미소')
   const [initialBalance, setInitialBalance] = useState(String(currentClassroom?.initial_balance || 50))
+  const [showQR, setShowQR] = useState(false)
+  const inviteUrl = `${window.location.origin}/login?tab=student&code=${currentClassroom?.invite_code || ''}`
 
   const { data: moduleConfigs } = useModuleConfigs()
   const toggleModuleMutation = useToggleModule()
@@ -123,21 +126,38 @@ export function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">학급 초대 코드</p>
-              <p className="text-2xl font-bold text-primary-600 tracking-widest mt-1">
-                {currentClassroom?.invite_code}
-              </p>
+              {!showQR && (
+                <p className="text-2xl font-bold text-primary-600 tracking-widest mt-1">
+                  {currentClassroom?.invite_code}
+                </p>
+              )}
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                navigator.clipboard.writeText(currentClassroom?.invite_code || '')
-                toast.success('초대 코드가 복사되었습니다.')
-              }}
-            >
-              복사
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowQR(!showQR)}
+              >
+                {showQR ? '코드 보기' : 'QR 보기'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(currentClassroom?.invite_code || '')
+                  toast.success('초대 코드가 복사되었습니다.')
+                }}
+              >
+                복사
+              </Button>
+            </div>
           </div>
+          {showQR && (
+            <div className="flex flex-col items-center gap-2 mt-3">
+              <QRCodeSVG value={inviteUrl} size={160} level="M" />
+              <p className="text-xs text-text-tertiary">학생이 스캔하면 로그인 화면으로 이동합니다</p>
+            </div>
+          )}
         </div>
       </Card>
 

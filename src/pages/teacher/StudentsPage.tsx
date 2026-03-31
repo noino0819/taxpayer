@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { QRCodeSVG } from 'qrcode.react'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
@@ -188,8 +189,16 @@ export function StudentsPage() {
               {currentClassroom?.invite_code}
             </p>
           </div>
-          <p className="text-sm text-text-secondary text-center">
-            학생이 로그인 화면에서 이 코드를 입력하면 자동으로 학급에 참여합니다.
+          <div className="flex flex-col items-center gap-3 py-2">
+            <p className="text-sm text-text-secondary">또는 QR 코드를 스캔하세요</p>
+            <QRCodeSVG
+              value={`${window.location.origin}/login?tab=student&code=${currentClassroom?.invite_code || ''}`}
+              size={160}
+              level="M"
+            />
+          </div>
+          <p className="text-xs text-text-tertiary text-center">
+            학생이 QR을 스캔하거나 초대 코드를 입력하면 자동으로 학급에 참여합니다.
           </p>
         </div>
       </Modal>

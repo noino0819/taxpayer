@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
+import { Tooltip } from '@/components/common/Tooltip'
 import { useAuthStore } from '@/stores/authStore'
 import { useAccountStats, useStocks } from '@/hooks/useQueries'
+import { HiOutlineInformationCircle } from 'react-icons/hi2'
 
 export function EconomyPage() {
   const { currentClassroom } = useAuthStore()
@@ -37,7 +39,12 @@ export function EconomyPage() {
           <Badge variant="accent">{stocks?.length ?? 0}종목</Badge>
         </Card>
         <Card>
-          <p className="text-sm text-text-secondary">양극화 지수</p>
+          <p className="text-sm text-text-secondary inline-flex items-center gap-1">
+            양극화 지수
+            <Tooltip content="지니계수는 학급 내 자산 불평등 정도를 0~1 사이 숫자로 나타냅니다. 0에 가까울수록 자산이 고르게 분포, 1에 가까울수록 소수에게 편중되어 있습니다. 0.3 이하면 양호, 0.4 이상이면 주의가 필요합니다.">
+              <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
+            </Tooltip>
+          </p>
           <p className="text-2xl font-bold mt-1">{stats?.giniIndex ?? 0}</p>
           <Badge variant={(stats?.giniIndex ?? 0) <= 0.3 ? 'accent' : 'warning'}>
             {(stats?.giniIndex ?? 0) <= 0.3 ? '양호' : '주의'}

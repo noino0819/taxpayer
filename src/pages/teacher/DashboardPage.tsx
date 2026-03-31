@@ -162,12 +162,30 @@ export function DashboardPage() {
             </div>
 
             <div className="border-t border-border pt-4">
-              <h4 className="text-sm font-medium text-text-secondary mb-3">초대 코드</h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium text-text-secondary">초대 코드</h4>
+                <button
+                  onClick={() => setShowQR(!showQR)}
+                  className="flex items-center gap-1 text-xs text-primary-500 hover:text-primary-600 transition-colors"
+                >
+                  <HiOutlineQrCode className="w-4 h-4" />
+                  {showQR ? '코드 보기' : 'QR 보기'}
+                </button>
+              </div>
               <div className="bg-primary-50 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-primary-600 tracking-widest">
-                  {currentClassroom?.invite_code}
-                </p>
-                <p className="text-xs text-text-tertiary mt-1">학생에게 이 코드를 알려주세요</p>
+                {showQR ? (
+                  <div className="flex flex-col items-center gap-2 py-1">
+                    <QRCodeSVG value={inviteUrl} size={120} level="M" />
+                    <p className="text-xs text-text-tertiary">스캔하면 학생 로그인 화면으로 이동합니다</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-2xl font-bold text-primary-600 tracking-widest">
+                      {currentClassroom?.invite_code}
+                    </p>
+                    <p className="text-xs text-text-tertiary mt-1">학생에게 이 코드를 알려주세요</p>
+                  </>
+                )}
               </div>
             </div>
 
