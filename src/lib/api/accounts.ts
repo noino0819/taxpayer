@@ -96,13 +96,16 @@ export async function withdraw(accountId: string, amount: number, description: s
 }
 
 export async function batchDeposit(classroomId: string, userIds: string[], amount: number, description: string, approvedBy: string) {
-  const { data: accounts } = await supabase
+  const { data: accounts, error } = await supabase
     .from('accounts')
     .select('id, user_id')
     .eq('classroom_id', classroomId)
     .in('user_id', userIds)
 
-  if (!accounts) return
+  if (error) throw error
+  if (!accounts || accounts.length === 0) {
+    throw new Error('선택한 학생의 계좌를 찾을 수 없습니다.')
+  }
 
   const txns = accounts.map((acc) => ({
     account_id: acc.id,
@@ -113,7 +116,8 @@ export async function batchDeposit(classroomId: string, userIds: string[], amoun
     approved_by: approvedBy,
   }))
 
-  await supabase.from('transactions').insert(txns)
+  const { error: txError } = await supabase.from('transactions').insert(txns)
+  if (txError) throw txError
 
   for (const acc of accounts) {
     await supabase.rpc('update_balance', { p_account_id: acc.id, p_amount: amount })
@@ -121,13 +125,16 @@ export async function batchDeposit(classroomId: string, userIds: string[], amoun
 }
 
 export async function batchWithdraw(classroomId: string, userIds: string[], amount: number, description: string, approvedBy: string) {
-  const { data: accounts } = await supabase
+  const { data: accounts, error } = await supabase
     .from('accounts')
     .select('id, user_id')
     .eq('classroom_id', classroomId)
     .in('user_id', userIds)
 
-  if (!accounts) return
+  if (error) throw error
+  if (!accounts || accounts.length === 0) {
+    throw new Error('선택한 학생의 계좌를 찾을 수 없습니다.')
+  }
 
   const txns = accounts.map((acc) => ({
     account_id: acc.id,
@@ -138,7 +145,8 @@ export async function batchWithdraw(classroomId: string, userIds: string[], amou
     approved_by: approvedBy,
   }))
 
-  await supabase.from('transactions').insert(txns)
+  const { error: txError } = await supabase.from('transactions').insert(txns)
+  if (txError) throw txError
 
   for (const acc of accounts) {
     await supabase.rpc('update_balance', { p_account_id: acc.id, p_amount: -amount })

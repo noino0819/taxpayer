@@ -18,7 +18,7 @@ export function BankbookManagePage() {
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
 
-  const { data: accounts } = useAllAccounts()
+  const { data: accounts, isLoading, isError } = useAllAccounts()
   const { data: stats } = useAccountStats()
   const batchDepositMutation = useBatchDeposit()
   const batchWithdrawMutation = useBatchWithdraw()
@@ -30,6 +30,8 @@ export function BankbookManagePage() {
     balance: acc.balance,
     accountId: acc.id,
   }))
+
+  const hasStudents = students.length > 0
 
   const toggleStudent = (id: string) => {
     setSelectedStudents((prev) =>
@@ -76,6 +78,24 @@ export function BankbookManagePage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-text-secondary">
+        <div className="w-8 h-8 border-2 border-primary-300 border-t-primary-600 rounded-full animate-spin mb-4" />
+        <p className="text-sm">통장 데이터를 불러오는 중...</p>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-text-secondary">
+        <p className="text-lg font-semibold text-danger-500 mb-2">데이터를 불러올 수 없습니다</p>
+        <p className="text-sm">네트워크 상태를 확인하고 다시 시도해주세요.</p>
+      </div>
+    )
+  }
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center justify-between">
@@ -88,6 +108,7 @@ export function BankbookManagePage() {
             variant="accent"
             icon={<HiOutlinePlusCircle className="w-5 h-5" />}
             onClick={() => { setTransferType('deposit'); setShowTransferModal(true) }}
+            disabled={!hasStudents}
           >
             입금
           </Button>
@@ -95,6 +116,7 @@ export function BankbookManagePage() {
             variant="danger"
             icon={<HiOutlineMinusCircle className="w-5 h-5" />}
             onClick={() => { setTransferType('withdraw'); setShowTransferModal(true) }}
+            disabled={!hasStudents}
           >
             출금
           </Button>
@@ -184,20 +206,26 @@ export function BankbookManagePage() {
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-              {students.map((student: any) => (
-                <button
-                  key={student.id}
-                  onClick={() => toggleStudent(student.id)}
-                  className={`flex items-center gap-2 p-2 rounded-xl border text-sm transition-colors text-left ${
-                    selectedStudents.includes(student.id)
-                      ? 'border-primary-400 bg-primary-50'
-                      : 'border-border hover:bg-surface-tertiary'
-                  }`}
-                >
-                  <span>{student.avatar}</span>
-                  <span className="font-medium">{student.name}</span>
-                </button>
-              ))}
+              {students.length === 0 ? (
+                <p className="col-span-2 text-sm text-text-tertiary text-center py-4">
+                  학급에 등록된 학생이 없습니다.
+                </p>
+              ) : (
+                students.map((student: any) => (
+                  <button
+                    key={student.id}
+                    onClick={() => toggleStudent(student.id)}
+                    className={`flex items-center gap-2 p-2 rounded-xl border text-sm transition-colors text-left ${
+                      selectedStudents.includes(student.id)
+                        ? 'border-primary-400 bg-primary-50'
+                        : 'border-border hover:bg-surface-tertiary'
+                    }`}
+                  >
+                    <span>{student.avatar}</span>
+                    <span className="font-medium">{student.name}</span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
           <Input
