@@ -7,7 +7,7 @@ export async function getJobs(classroomId: string): Promise<Job[]> {
     .select('*')
     .eq('classroom_id', classroomId)
     .eq('is_active', true)
-    .order('type')
+    .order('created_at')
     .order('name')
   if (error) throw error
   return data as Job[]
@@ -63,6 +63,14 @@ export async function assignJob(jobId: string, userId: string): Promise<JobAssig
     .single()
   if (error) throw error
   return data as JobAssignment
+}
+
+export async function deleteJob(jobId: string): Promise<void> {
+  const { error } = await supabase
+    .from('jobs')
+    .update({ is_active: false })
+    .eq('id', jobId)
+  if (error) throw error
 }
 
 export async function unassignJob(assignmentId: string): Promise<void> {

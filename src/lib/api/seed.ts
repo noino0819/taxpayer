@@ -1,10 +1,10 @@
 import { supabase } from '@/lib/supabase'
-import { REQUIRED_JOBS, OPTIONAL_JOBS, MODULE_LABELS } from '@/lib/constants'
+import { DEFAULT_JOBS, MODULE_LABELS } from '@/lib/constants'
 import type { ModuleName } from '@/types/database'
 
 /**
  * 학급 생성 직후 기본 데이터를 Supabase에 시딩합니다.
- * - 기본 직업(필수/선택)
+ * - 기본 직업
  * - 기본 모듈 설정
  * - 기본 상점(학교 마트)
  * - 기본 저축 상품
@@ -25,27 +25,17 @@ export async function seedClassroomData(classroomId: string, _currencyUnit?: str
 }
 
 async function seedJobs(classroomId: string) {
-  const requiredJobs = REQUIRED_JOBS.map((j) => ({
+  const jobs = DEFAULT_JOBS.map((j) => ({
     classroom_id: classroomId,
     name: j.name,
-    type: 'required' as const,
+    type: 'custom' as const,
     description: j.description,
     salary: j.salary,
     max_count: j.maxCount,
     is_active: true,
   }))
 
-  const optionalJobs = OPTIONAL_JOBS.map((j) => ({
-    classroom_id: classroomId,
-    name: j.name,
-    type: 'optional' as const,
-    description: j.description,
-    salary: j.salary,
-    max_count: j.maxCount,
-    is_active: true,
-  }))
-
-  await supabase.from('jobs').insert([...requiredJobs, ...optionalJobs])
+  await supabase.from('jobs').insert(jobs)
 }
 
 async function seedModules(classroomId: string) {
