@@ -1,45 +1,82 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/common/Card'
-import { Badge } from '@/components/common/Badge'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Modal } from '@/components/common/Modal'
 import { useAuthStore } from '@/stores/authStore'
+import { useClassroomMembers, useAllAccounts, useDeposit, useWithdraw } from '@/hooks/useQueries'
 import { CREDIT_GRADES } from '@/lib/constants'
 import { HiOutlineMagnifyingGlass, HiOutlinePlusCircle } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
-const demoStudents = [
-  { id: '1', name: '김영희', avatar: '🐶', balance: 152, creditGrade: 1, job: '은행원' },
-  { id: '2', name: '이철수', avatar: '🐱', balance: 98, creditGrade: 2, job: '국세청 직원' },
-  { id: '3', name: '박지민', avatar: '🐰', balance: 134, creditGrade: 2, job: '경찰' },
-  { id: '4', name: '최수정', avatar: '🐻', balance: 76, creditGrade: 3, job: '통계청 직원' },
-  { id: '5', name: '정우성', avatar: '🦊', balance: 45, creditGrade: 4, job: null },
-  { id: '6', name: '한예슬', avatar: '🐼', balance: 201, creditGrade: 1, job: '신용평가위원' },
-  { id: '7', name: '강다니엘', avatar: '🐯', balance: 88, creditGrade: 3, job: '교실 청소부' },
-  { id: '8', name: '송혜교', avatar: '🦁', balance: 167, creditGrade: 1, job: '기자' },
-  { id: '9', name: '유재석', avatar: '😎', balance: 55, creditGrade: 3, job: null },
-  { id: '10', name: '김민지', avatar: '🐸', balance: 120, creditGrade: 2, job: '경찰' },
-]
-
 export function StudentsPage() {
   const { currentClassroom } = useAuthStore()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedStudent, setSelectedStudent] = useState<typeof demoStudents[0] | null>(null)
+  const [selectedStudent, setSelectedStudent] = useState<any>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [actionAmount, setActionAmount] = useState('')
   const currency = currentClassroom?.currency_name || '미소'
 
-  const filtered = demoStudents.filter((s) =>
+  const { data: members } = useClassroomMembers()
+  const { data: accounts } = useAllAccounts()
+  const depositMutation = useDeposit()
+  const withdrawMutation = useWithdraw()
+
+  const students = (members ?? [])
+    .filter((m) => m.user?.role === 'student')
+    .map((m) => {
+      const acc = (accounts ?? []).find((a: any) => a.user_id === m.user_id)
+      return {
+        id: m.user_id,
+        name: m.user?.name ?? '',
+        avatar: m.user?.avatar_preset_id ?? '😊',
+        balance: acc?.balance ?? 0,
+        creditGrade: acc?.credit_grade ?? 3,
+        accountId: acc?.id,
+      }
+    })
+
+  const filtered = students.filter((s) =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase()),
   )
+
+  const handleDeposit = async () => {
+    if (!selectedStudent?.accountId || !actionAmount) return
+    try {
+      await depositMutation.mutateAsync({
+        accountId: selectedStudent.accountId,
+        amount: Number(actionAmount),
+        description: '교사 수동 입금',
+      })
+      toast.success(`${selectedStudent.name}에게 ${actionAmount}${currency} 입금 완료`)
+      setActionAmount('')
+    } catch {
+      toast.error('입금에 실패했습니다.')
+    }
+  }
+
+  const handleWithdraw = async () => {
+    if (!selectedStudent?.accountId || !actionAmount) return
+    try {
+      await withdrawMutation.mutateAsync({
+        accountId: selectedStudent.accountId,
+        amount: Number(actionAmount),
+        description: '교사 수동 출금',
+      })
+      toast.success(`${selectedStudent.name}에게서 ${actionAmount}${currency} 출금 완료`)
+      setActionAmount('')
+    } catch {
+      toast.error('출금에 실패했습니다.')
+    }
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">학생 관리</h1>
-          <p className="text-text-secondary text-sm mt-1">총 {demoStudents.length}명</p>
+          <p className="text-text-secondary text-sm mt-1">총 {students.length}명</p>
         </div>
         <Button icon={<HiOutlinePlusCircle className="w-5 h-5" />} onClick={() => setShowAddModal(true)}>
           학생 추가
@@ -69,7 +106,6 @@ export function StudentsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h4 className="font-semibold">{student.name}</h4>
-                    {student.job && <Badge variant="accent">{student.job}</Badge>}
                   </div>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-sm text-text-secondary">
@@ -86,11 +122,16 @@ export function StudentsPage() {
             </Card>
           )
         })}
+        {filtered.length === 0 && (
+          <p className="text-text-tertiary text-sm col-span-2 text-center py-8">
+            {students.length === 0 ? '아직 학생이 없습니다. 초대 코드를 공유하세요!' : '검색 결과가 없습니다.'}
+          </p>
+        )}
       </div>
 
       <Modal
         isOpen={!!selectedStudent}
-        onClose={() => setSelectedStudent(null)}
+        onClose={() => { setSelectedStudent(null); setActionAmount('') }}
         title={selectedStudent?.name}
         size="md"
       >
@@ -106,19 +147,32 @@ export function StudentsPage() {
                 <span className="font-semibold">{selectedStudent.balance}{currency}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-secondary">직업</span>
-                <span className="font-semibold">{selectedStudent.job || '없음'}</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-text-secondary">신용등급</span>
                 <span className="font-semibold">{selectedStudent.creditGrade}등급</span>
               </div>
             </div>
+            <Input
+              label={`금액 (${currency})`}
+              type="number"
+              placeholder="금액을 입력하세요"
+              value={actionAmount}
+              onChange={(e) => setActionAmount(e.target.value)}
+            />
             <div className="flex gap-2">
-              <Button variant="secondary" className="flex-1" onClick={() => toast.success('입금 처리됨')}>
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={handleDeposit}
+                isLoading={depositMutation.isPending}
+              >
                 입금
               </Button>
-              <Button variant="danger" className="flex-1" onClick={() => toast.success('출금 처리됨')}>
+              <Button
+                variant="danger"
+                className="flex-1"
+                onClick={handleWithdraw}
+                isLoading={withdrawMutation.isPending}
+              >
                 출금
               </Button>
             </div>

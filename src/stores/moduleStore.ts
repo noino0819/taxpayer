@@ -1,11 +1,12 @@
 import { create } from 'zustand'
-import type { ModuleName } from '@/types/database'
+import type { ModuleName, ModuleConfig } from '@/types/database'
 
 interface ModuleState {
   modules: Record<ModuleName, boolean>
-  setModule: (name: ModuleName, enabled: boolean) => void
+  setModule: (key: ModuleName, enabled: boolean) => void
   setModules: (modules: Record<ModuleName, boolean>) => void
-  isEnabled: (name: ModuleName) => boolean
+  isEnabled: (key: ModuleName) => boolean
+  syncFromConfigs: (configs: ModuleConfig[]) => void
 }
 
 const defaultModules: Record<ModuleName, boolean> = {
@@ -25,10 +26,17 @@ const defaultModules: Record<ModuleName, boolean> = {
 
 export const useModuleStore = create<ModuleState>()((set, get) => ({
   modules: { ...defaultModules },
-  setModule: (name, enabled) =>
-    set((state) => ({
-      modules: { ...state.modules, [name]: enabled },
-    })),
+  setModule: (key, enabled) =>
+    set((state) => ({ modules: { ...state.modules, [key]: enabled } })),
   setModules: (modules) => set({ modules }),
-  isEnabled: (name) => get().modules[name] ?? false,
+  isEnabled: (key) => get().modules[key] ?? false,
+  syncFromConfigs: (configs) => {
+    const updated = { ...defaultModules }
+    for (const config of configs) {
+      if (config.module_name in updated) {
+        updated[config.module_name as ModuleName] = config.is_enabled
+      }
+    }
+    set({ modules: updated })
+  },
 }))

@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { useAuthStore } from '@/stores/authStore'
+import { signInTeacher, signInStudent } from '@/lib/api/auth'
+import { getTeacherClassrooms, getClassroomByInviteCode } from '@/lib/api/classrooms'
 import { HiOutlineEnvelope, HiOutlineLockClosed } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
@@ -23,42 +25,19 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      // Demo mode - Supabase 연결 전 데모 데이터 사용
-      const demoUser = {
-        id: 'teacher-demo-1',
-        email,
-        name: '김선생',
-        role: 'teacher' as const,
-        pin: null,
-        avatar_preset_id: null,
-        created_at: new Date().toISOString(),
-      }
-      const demoClassroom = {
-        id: 'class-demo-1',
-        name: '행복반',
-        school: '서울초등학교',
-        grade: 5,
-        class_num: 3,
-        semester: 1,
-        teacher_id: demoUser.id,
-        currency_name: '미소',
-        currency_unit: '미소',
-        currency_ratio: 10000,
-        initial_balance: 50,
-        invite_code: 'ABC123',
-        economy_mode: 'semi' as const,
-        status: 'active' as const,
-        semester_start: '2026-03-02',
-        semester_end: '2026-07-17',
-        created_at: new Date().toISOString(),
+      const user = await signInTeacher(email, password)
+      setUser(user)
+
+      const classrooms = await getTeacherClassrooms(user.id)
+      if (classrooms.length > 0) {
+        setCurrentClassroom(classrooms[0])
       }
 
-      setUser(demoUser)
-      setCurrentClassroom(demoClassroom)
-      toast.success(`${demoUser.name} 선생님, 환영합니다!`)
+      toast.success(`${user.name} 선생님, 환영합니다!`)
       navigate('/teacher')
-    } catch {
-      toast.error('로그인에 실패했습니다.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '로그인에 실패했습니다.'
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
@@ -69,41 +48,17 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      const demoStudent = {
-        id: 'student-demo-1',
-        email: null,
-        name: studentName || '홍길동',
-        role: 'student' as const,
-        pin,
-        avatar_preset_id: '😊',
-        created_at: new Date().toISOString(),
-      }
-      const demoClassroom = {
-        id: 'class-demo-1',
-        name: '행복반',
-        school: '서울초등학교',
-        grade: 5,
-        class_num: 3,
-        semester: 1,
-        teacher_id: 'teacher-demo-1',
-        currency_name: '미소',
-        currency_unit: '미소',
-        currency_ratio: 10000,
-        initial_balance: 50,
-        invite_code: inviteCode || 'ABC123',
-        economy_mode: 'semi' as const,
-        status: 'active' as const,
-        semester_start: '2026-03-02',
-        semester_end: '2026-07-17',
-        created_at: new Date().toISOString(),
-      }
+      const user = await signInStudent(studentName, inviteCode, pin)
+      setUser(user)
 
-      setUser(demoStudent)
-      setCurrentClassroom(demoClassroom)
-      toast.success(`${demoStudent.name}님, 환영합니다!`)
+      const classroom = await getClassroomByInviteCode(inviteCode)
+      setCurrentClassroom(classroom)
+
+      toast.success(`${user.name}님, 환영합니다!`)
       navigate('/student')
-    } catch {
-      toast.error('로그인에 실패했습니다.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '로그인에 실패했습니다.'
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }

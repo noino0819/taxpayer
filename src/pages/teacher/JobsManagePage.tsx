@@ -6,19 +6,9 @@ import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Modal } from '@/components/common/Modal'
 import { useAuthStore } from '@/stores/authStore'
-import { REQUIRED_JOBS, OPTIONAL_JOBS } from '@/lib/constants'
+import { useJobs, useJobAssignments, useCreateJob } from '@/hooks/useQueries'
 import { HiOutlinePlusCircle, HiOutlinePencilSquare, HiOutlineUserGroup } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
-
-const demoAssignments: Record<string, string[]> = {
-  '은행원': ['김영희', '한예슬'],
-  '국세청 직원': ['이철수'],
-  '경찰': ['박지민', '김민지'],
-  '통계청 직원': ['최수정'],
-  '신용평가위원': ['한예슬'],
-  '교실 청소부': ['강다니엘', '유재석'],
-  '기자': ['송혜교'],
-}
 
 export function JobsManagePage() {
   const { currentClassroom } = useAuthStore()
@@ -26,15 +16,79 @@ export function JobsManagePage() {
   const [newJob, setNewJob] = useState({ name: '', description: '', salary: '', maxCount: '' })
   const currency = currentClassroom?.currency_name || '미소'
 
-  const handleCreateJob = () => {
-    if (!newJob.name || !newJob.salary) {
+  const { data: jobs } = useJobs()
+  const { data: assignments } = useJobAssignments()
+  const createJobMutation = useCreateJob()
+
+  const requiredJobs = (jobs ?? []).filter((j) => j.type === 'required')
+  const optionalJobs = (jobs ?? []).filter((j) => j.type === 'optional')
+  const customJobs = (jobs ?? []).filter((j) => j.type === 'custom')
+
+  const getAssignments = (jobId: string) =>
+    (assignments ?? []).filter((a: any) => a.job_id === jobId)
+
+  const handleCreateJob = async () => {
+    if (!newJob.name || !newJob.salary || !currentClassroom) {
       toast.error('직업명과 월급을 입력해주세요.')
       return
     }
-    toast.success(`'${newJob.name}' 직업이 생성되었습니다.`)
-    setShowCreateModal(false)
-    setNewJob({ name: '', description: '', salary: '', maxCount: '' })
+    try {
+      await createJobMutation.mutateAsync({
+        classroom_id: currentClassroom.id,
+        name: newJob.name,
+        type: 'custom',
+        description: newJob.description,
+        salary: Number(newJob.salary),
+        max_count: Number(newJob.maxCount) || 2,
+        qualifications: null,
+      })
+      toast.success(`'${newJob.name}' 직업이 생성되었습니다.`)
+      setShowCreateModal(false)
+      setNewJob({ name: '', description: '', salary: '', maxCount: '' })
+    } catch {
+      toast.error('직업 생성에 실패했습니다.')
+    }
   }
+
+  const renderJobList = (jobList: typeof requiredJobs, typeLabel: string, variant: 'primary' | 'accent' | 'warning') => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {jobList.map((job) => {
+        const assigned = getAssignments(job.id)
+        return (
+          <Card key={job.id} padding="sm">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-semibold">{job.name}</h4>
+                  <Badge variant={variant}>{typeLabel}</Badge>
+                </div>
+                <p className="text-xs text-text-tertiary mt-1">{job.description}</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-sm font-medium text-primary-600">
+                    월급: {job.salary}{currency}
+                  </span>
+                  <div className="flex items-center gap-1 text-xs text-text-tertiary">
+                    <HiOutlineUserGroup className="w-3.5 h-3.5" />
+                    {assigned.length}/{job.max_count}
+                  </div>
+                </div>
+                {assigned.length > 0 && (
+                  <div className="flex gap-1 mt-2 flex-wrap">
+                    {assigned.map((a: any) => (
+                      <Badge key={a.id} variant="neutral">{a.user?.name}</Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button className="p-1.5 hover:bg-surface-tertiary rounded-lg transition-colors">
+                <HiOutlinePencilSquare className="w-4 h-4 text-text-tertiary" />
+              </button>
+            </div>
+          </Card>
+        )
+      })}
+    </div>
+  )
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -48,87 +102,30 @@ export function JobsManagePage() {
         </Button>
       </div>
 
-      <div>
-        <h3 className="text-sm font-semibold text-text-secondary mb-3">필수 직업</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {REQUIRED_JOBS.map((job) => {
-            const assigned = demoAssignments[job.name] || []
-            return (
-              <Card key={job.name} padding="sm">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">{job.name}</h4>
-                      <Badge variant="primary">필수</Badge>
-                    </div>
-                    <p className="text-xs text-text-tertiary mt-1">{job.description}</p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className="text-sm font-medium text-primary-600">
-                        월급: {job.salary}{currency}
-                      </span>
-                      <div className="flex items-center gap-1 text-xs text-text-tertiary">
-                        <HiOutlineUserGroup className="w-3.5 h-3.5" />
-                        {assigned.length}/{job.maxCount}
-                      </div>
-                    </div>
-                    {assigned.length > 0 && (
-                      <div className="flex gap-1 mt-2 flex-wrap">
-                        {assigned.map((name) => (
-                          <Badge key={name} variant="neutral">{name}</Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <button className="p-1.5 hover:bg-surface-tertiary rounded-lg transition-colors">
-                    <HiOutlinePencilSquare className="w-4 h-4 text-text-tertiary" />
-                  </button>
-                </div>
-              </Card>
-            )
-          })}
+      {requiredJobs.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-text-secondary mb-3">필수 직업</h3>
+          {renderJobList(requiredJobs, '필수', 'primary')}
         </div>
-      </div>
+      )}
 
-      <div>
-        <h3 className="text-sm font-semibold text-text-secondary mb-3">선택 직업</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {OPTIONAL_JOBS.map((job) => {
-            const assigned = demoAssignments[job.name] || []
-            return (
-              <Card key={job.name} padding="sm">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">{job.name}</h4>
-                      <Badge variant="accent">선택</Badge>
-                    </div>
-                    <p className="text-xs text-text-tertiary mt-1">{job.description}</p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className="text-sm font-medium text-primary-600">
-                        월급: {job.salary}{currency}
-                      </span>
-                      <div className="flex items-center gap-1 text-xs text-text-tertiary">
-                        <HiOutlineUserGroup className="w-3.5 h-3.5" />
-                        {assigned.length}/{job.maxCount}
-                      </div>
-                    </div>
-                    {assigned.length > 0 && (
-                      <div className="flex gap-1 mt-2 flex-wrap">
-                        {assigned.map((name) => (
-                          <Badge key={name} variant="neutral">{name}</Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <button className="p-1.5 hover:bg-surface-tertiary rounded-lg transition-colors">
-                    <HiOutlinePencilSquare className="w-4 h-4 text-text-tertiary" />
-                  </button>
-                </div>
-              </Card>
-            )
-          })}
+      {optionalJobs.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-text-secondary mb-3">선택 직업</h3>
+          {renderJobList(optionalJobs, '선택', 'accent')}
         </div>
-      </div>
+      )}
+
+      {customJobs.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-text-secondary mb-3">커스텀 직업</h3>
+          {renderJobList(customJobs, '커스텀', 'warning')}
+        </div>
+      )}
+
+      {(jobs ?? []).length === 0 && (
+        <p className="text-center text-text-tertiary py-8">아직 등록된 직업이 없습니다.</p>
+      )}
 
       <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="새 직업 추가">
         <div className="space-y-4">
@@ -160,7 +157,7 @@ export function JobsManagePage() {
               onChange={(e) => setNewJob({ ...newJob, maxCount: e.target.value })}
             />
           </div>
-          <Button className="w-full" onClick={handleCreateJob}>
+          <Button className="w-full" onClick={handleCreateJob} isLoading={createJobMutation.isPending}>
             직업 생성
           </Button>
         </div>

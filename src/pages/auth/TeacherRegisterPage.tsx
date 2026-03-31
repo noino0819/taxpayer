@@ -4,6 +4,9 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { useAuthStore } from '@/stores/authStore'
+import { signUpTeacher } from '@/lib/api/auth'
+import { createClassroom } from '@/lib/api/classrooms'
+import { seedClassroomData } from '@/lib/api/seed'
 import toast from 'react-hot-toast'
 
 export function TeacherRegisterPage() {
@@ -39,43 +42,22 @@ export function TeacherRegisterPage() {
 
     setIsLoading(true)
     try {
-      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase()
-
-      const demoUser = {
-        id: `teacher-${Date.now()}`,
-        email: form.email,
-        name: form.name,
-        role: 'teacher' as const,
-        pin: null,
-        avatar_preset_id: null,
-        created_at: new Date().toISOString(),
-      }
-      const demoClassroom = {
-        id: `class-${Date.now()}`,
-        name: `${form.grade}-${form.classNum}`,
+      const user = await signUpTeacher(form.email, form.password, form.name)
+      const classroom = await createClassroom(user.id, {
         school: form.school,
         grade: Number(form.grade),
-        class_num: Number(form.classNum),
-        semester: 1,
-        teacher_id: demoUser.id,
-        currency_name: '미소',
-        currency_unit: '미소',
-        currency_ratio: 10000,
-        initial_balance: 50,
-        invite_code: inviteCode,
-        economy_mode: 'semi' as const,
-        status: 'active' as const,
-        semester_start: null,
-        semester_end: null,
-        created_at: new Date().toISOString(),
-      }
+        classNum: Number(form.classNum),
+      })
 
-      setUser(demoUser)
-      setCurrentClassroom(demoClassroom)
-      toast.success('회원가입이 완료되었습니다!')
+      await seedClassroomData(classroom.id, classroom.currency_unit)
+
+      setUser(user)
+      setCurrentClassroom(classroom)
+      toast.success('회원가입이 완료되었습니다! 기본 데이터가 세팅되었습니다.')
       navigate('/teacher')
-    } catch {
-      toast.error('회원가입에 실패했습니다.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '회원가입에 실패했습니다.'
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }

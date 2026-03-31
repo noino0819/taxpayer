@@ -5,28 +5,31 @@ import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Modal } from '@/components/common/Modal'
 import { useAuthStore } from '@/stores/authStore'
+import { useAllAccounts, useAccountStats, useBatchDeposit, useBatchWithdraw } from '@/hooks/useQueries'
 import { HiOutlinePlusCircle, HiOutlineMinusCircle, HiOutlineBanknotes } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
-const demoStudents = [
-  { id: '1', name: '김영희', avatar: '🐶', balance: 152 },
-  { id: '2', name: '이철수', avatar: '🐱', balance: 98 },
-  { id: '3', name: '박지민', avatar: '🐰', balance: 134 },
-  { id: '4', name: '최수정', avatar: '🐻', balance: 76 },
-  { id: '5', name: '정우성', avatar: '🦊', balance: 45 },
-  { id: '6', name: '한예슬', avatar: '🐼', balance: 201 },
-  { id: '7', name: '강다니엘', avatar: '🐯', balance: 88 },
-  { id: '8', name: '송혜교', avatar: '🦁', balance: 167 },
-]
-
 export function BankbookManagePage() {
-  const { currentClassroom } = useAuthStore()
+  const { currentClassroom, user } = useAuthStore()
   const currency = currentClassroom?.currency_name || '미소'
   const [showTransferModal, setShowTransferModal] = useState(false)
   const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit')
   const [selectedStudents, setSelectedStudents] = useState<string[]>([])
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
+
+  const { data: accounts } = useAllAccounts()
+  const { data: stats } = useAccountStats()
+  const batchDepositMutation = useBatchDeposit()
+  const batchWithdrawMutation = useBatchWithdraw()
+
+  const students = (accounts ?? []).map((acc: any) => ({
+    id: acc.user_id,
+    name: acc.user?.name ?? '알 수 없음',
+    avatar: acc.user?.avatar_preset_id ?? '😊',
+    balance: acc.balance,
+    accountId: acc.id,
+  }))
 
   const toggleStudent = (id: string) => {
     setSelectedStudents((prev) =>
@@ -35,10 +38,10 @@ export function BankbookManagePage() {
   }
 
   const selectAll = () => {
-    setSelectedStudents(demoStudents.map((s) => s.id))
+    setSelectedStudents(students.map((s: any) => s.id))
   }
 
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
     if (selectedStudents.length === 0) {
       toast.error('학생을 선택해주세요.')
       return
@@ -47,16 +50,31 @@ export function BankbookManagePage() {
       toast.error('금액을 입력해주세요.')
       return
     }
-    const action = transferType === 'deposit' ? '입금' : '출금'
-    toast.success(`${selectedStudents.length}명에게 ${amount}${currency} ${action} 완료!`)
-    setShowTransferModal(false)
-    setSelectedStudents([])
-    setAmount('')
-    setDescription('')
-  }
 
-  const totalBalance = demoStudents.reduce((sum, s) => sum + s.balance, 0)
-  const avgBalance = Math.round(totalBalance / demoStudents.length)
+    try {
+      const params = {
+        userIds: selectedStudents,
+        amount: Number(amount),
+        description: description || (transferType === 'deposit' ? '교사 입금' : '교사 출금'),
+        approvedBy: user!.id,
+      }
+
+      if (transferType === 'deposit') {
+        await batchDepositMutation.mutateAsync(params)
+      } else {
+        await batchWithdrawMutation.mutateAsync(params)
+      }
+
+      const action = transferType === 'deposit' ? '입금' : '출금'
+      toast.success(`${selectedStudents.length}명에게 ${amount}${currency} ${action} 완료!`)
+      setShowTransferModal(false)
+      setSelectedStudents([])
+      setAmount('')
+      setDescription('')
+    } catch {
+      toast.error('처리에 실패했습니다.')
+    }
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -69,20 +87,14 @@ export function BankbookManagePage() {
           <Button
             variant="accent"
             icon={<HiOutlinePlusCircle className="w-5 h-5" />}
-            onClick={() => {
-              setTransferType('deposit')
-              setShowTransferModal(true)
-            }}
+            onClick={() => { setTransferType('deposit'); setShowTransferModal(true) }}
           >
             입금
           </Button>
           <Button
             variant="danger"
             icon={<HiOutlineMinusCircle className="w-5 h-5" />}
-            onClick={() => {
-              setTransferType('withdraw')
-              setShowTransferModal(true)
-            }}
+            onClick={() => { setTransferType('withdraw'); setShowTransferModal(true) }}
           >
             출금
           </Button>
@@ -97,7 +109,7 @@ export function BankbookManagePage() {
             </div>
             <div>
               <p className="text-sm text-text-secondary">총 통화량</p>
-              <p className="text-xl font-bold">{totalBalance.toLocaleString()}{currency}</p>
+              <p className="text-xl font-bold">{(stats?.totalBalance ?? 0).toLocaleString()}{currency}</p>
             </div>
           </div>
         </Card>
@@ -108,7 +120,7 @@ export function BankbookManagePage() {
             </div>
             <div>
               <p className="text-sm text-text-secondary">평균 잔액</p>
-              <p className="text-xl font-bold">{avgBalance}{currency}</p>
+              <p className="text-xl font-bold">{stats?.avgBalance ?? 0}{currency}</p>
             </div>
           </div>
         </Card>
@@ -119,7 +131,7 @@ export function BankbookManagePage() {
             </div>
             <div>
               <p className="text-sm text-text-secondary">학생 수</p>
-              <p className="text-xl font-bold">{demoStudents.length}명</p>
+              <p className="text-xl font-bold">{stats?.studentCount ?? 0}명</p>
             </div>
           </div>
         </Card>
@@ -128,9 +140,12 @@ export function BankbookManagePage() {
       <Card>
         <h3 className="font-semibold mb-4">학생별 잔액</h3>
         <div className="space-y-2">
-          {demoStudents
-            .sort((a, b) => b.balance - a.balance)
-            .map((student, idx) => (
+          {students.length === 0 && (
+            <p className="text-sm text-text-tertiary text-center py-4">학생이 없습니다.</p>
+          )}
+          {students
+            .sort((a: any, b: any) => b.balance - a.balance)
+            .map((student: any, idx: number) => (
               <div
                 key={student.id}
                 className="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-tertiary transition-colors"
@@ -142,7 +157,7 @@ export function BankbookManagePage() {
                   <div className="w-32 h-2 bg-surface-tertiary rounded-full overflow-hidden">
                     <div
                       className="h-full bg-primary-400 rounded-full"
-                      style={{ width: `${(student.balance / 250) * 100}%` }}
+                      style={{ width: `${Math.min((student.balance / (stats?.avgBalance ? stats.avgBalance * 2 : 250)) * 100, 100)}%` }}
                     />
                   </div>
                   <span className="text-sm font-semibold w-20 text-right">
@@ -169,7 +184,7 @@ export function BankbookManagePage() {
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-              {demoStudents.map((student) => (
+              {students.map((student: any) => (
                 <button
                   key={student.id}
                   onClick={() => toggleStudent(student.id)}
@@ -202,6 +217,7 @@ export function BankbookManagePage() {
             className="w-full"
             variant={transferType === 'deposit' ? 'accent' : 'danger'}
             onClick={handleTransfer}
+            isLoading={batchDepositMutation.isPending || batchWithdrawMutation.isPending}
           >
             {transferType === 'deposit' ? '입금 처리' : '출금 처리'} ({selectedStudents.length}명)
           </Button>

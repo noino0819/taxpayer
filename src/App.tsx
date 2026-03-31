@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
@@ -66,7 +66,11 @@ function ProtectedRoute({ children, role }: { children: React.ReactNode; role: '
 }
 
 export default function App() {
-  const { user } = useAuthStore()
+  const { user, initAuth } = useAuthStore()
+
+  useEffect(() => {
+    initAuth()
+  }, [initAuth])
 
   return (
     <QueryClientProvider client={queryClient}>

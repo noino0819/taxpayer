@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
@@ -6,6 +6,7 @@ import { Input } from '@/components/common/Input'
 import { Badge } from '@/components/common/Badge'
 import { useAuthStore } from '@/stores/authStore'
 import { useModuleStore } from '@/stores/moduleStore'
+import { useModuleConfigs, useToggleModule, useUpdateClassroom } from '@/hooks/useQueries'
 import { MODULE_LABELS } from '@/lib/constants'
 import type { ModuleName } from '@/types/database'
 import toast from 'react-hot-toast'
@@ -39,17 +40,54 @@ const presets = [
 ]
 
 export function SettingsPage() {
-  const { currentClassroom } = useAuthStore()
-  const { modules, setModule, setModules } = useModuleStore()
+  const { currentClassroom, setCurrentClassroom } = useAuthStore()
+  const { modules, setModule, syncFromConfigs } = useModuleStore()
   const [currencyName, setCurrencyName] = useState(currentClassroom?.currency_name || '미소')
   const [initialBalance, setInitialBalance] = useState(String(currentClassroom?.initial_balance || 50))
 
-  const applyPreset = (presetModules: ModuleName[]) => {
-    const newModules = Object.fromEntries(
-      Object.keys(MODULE_LABELS).map((key) => [key, presetModules.includes(key as ModuleName)]),
-    ) as Record<ModuleName, boolean>
-    setModules(newModules)
+  const { data: moduleConfigs } = useModuleConfigs()
+  const toggleModuleMutation = useToggleModule()
+  const updateClassroomMutation = useUpdateClassroom()
+
+  useEffect(() => {
+    if (moduleConfigs) syncFromConfigs(moduleConfigs)
+  }, [moduleConfigs, syncFromConfigs])
+
+  const handleToggle = async (key: ModuleName) => {
+    const newVal = !modules[key]
+    setModule(key, newVal)
+    try {
+      await toggleModuleMutation.mutateAsync({ moduleName: key, enabled: newVal })
+    } catch {
+      setModule(key, !newVal)
+      toast.error('모듈 변경에 실패했습니다.')
+    }
+  }
+
+  const applyPreset = async (presetModules: ModuleName[]) => {
+    const allKeys = Object.keys(MODULE_LABELS) as ModuleName[]
+    for (const key of allKeys) {
+      const enabled = presetModules.includes(key)
+      if (modules[key] !== enabled) {
+        setModule(key, enabled)
+        toggleModuleMutation.mutate({ moduleName: key, enabled })
+      }
+    }
     toast.success('프리셋이 적용되었습니다.')
+  }
+
+  const handleSaveBasicSettings = async () => {
+    try {
+      const updated = await updateClassroomMutation.mutateAsync({
+        currency_name: currencyName,
+        currency_unit: currencyName,
+        initial_balance: Number(initialBalance),
+      })
+      setCurrentClassroom(updated)
+      toast.success('설정이 저장되었습니다.')
+    } catch {
+      toast.error('설정 저장에 실패했습니다.')
+    }
   }
 
   return (
@@ -75,6 +113,11 @@ export function SettingsPage() {
             onChange={(e) => setInitialBalance(e.target.value)}
             placeholder="50"
           />
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button onClick={handleSaveBasicSettings} isLoading={updateClassroomMutation.isPending}>
+            설정 저장
+          </Button>
         </div>
         <div className="mt-4 bg-primary-50 rounded-xl p-4">
           <div className="flex items-center justify-between">
@@ -133,7 +176,7 @@ export function SettingsPage() {
                   <p className="text-xs text-text-tertiary mt-0.5">{config.description}</p>
                 </div>
                 <button
-                  onClick={() => setModule(key, !modules[key])}
+                  onClick={() => handleToggle(key)}
                   className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
                     modules[key] ? 'bg-accent-500' : 'bg-border'
                   }`}
@@ -160,6 +203,17 @@ export function SettingsPage() {
           ].map((option) => (
             <button
               key={option.mode}
+              onClick={async () => {
+                try {
+                  const updated = await updateClassroomMutation.mutateAsync({
+                    economy_mode: option.mode as any,
+                  })
+                  setCurrentClassroom(updated)
+                  toast.success(`${option.label} 모드로 변경되었습니다.`)
+                } catch {
+                  toast.error('모드 변경에 실패했습니다.')
+                }
+              }}
               className={`p-4 rounded-xl border text-left transition-all ${
                 currentClassroom?.economy_mode === option.mode
                   ? 'border-primary-400 bg-primary-50 ring-2 ring-primary-200'
