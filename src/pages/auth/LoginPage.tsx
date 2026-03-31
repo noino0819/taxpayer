@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
+import { BrandLogo } from '@/components/common/BrandLogo'
 import { useAuthStore } from '@/stores/authStore'
 import { signInTeacher, signInStudent } from '@/lib/api/auth'
 import { getTeacherClassrooms, getClassroomByInviteCode } from '@/lib/api/classrooms'
@@ -95,35 +96,47 @@ export function LoginPage() {
             initial={{ scale: 0.5 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', damping: 15 }}
-            className="text-6xl mb-3"
+            className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center mx-auto mb-3 shadow-[0_4px_20px_rgba(82,179,56,0.3)]"
           >
-            🏫
+            <BrandLogo size={48} className="text-white" />
           </motion.div>
           <h1 className="text-3xl font-bold text-text-primary">세금 내는 아이들</h1>
           <p className="text-text-secondary mt-1">학급 화폐 경제 교육 플랫폼</p>
         </div>
 
         <div className="bg-surface rounded-2xl shadow-lg border border-border overflow-hidden">
-          <div className="flex border-b border-border">
+          <div className="flex border-b border-border relative">
             <button
               onClick={() => setLoginType('teacher')}
-              className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
+              className={`flex-1 py-3.5 text-sm font-semibold transition-colors relative ${
                 loginType === 'teacher'
-                  ? 'bg-primary-50 text-primary-600 border-b-2 border-primary-500'
+                  ? 'text-primary-600'
                   : 'text-text-secondary hover:bg-surface-tertiary'
               }`}
             >
               👨‍🏫 교사 로그인
+              {loginType === 'teacher' && (
+                <motion.div
+                  layoutId="login-tab-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 rounded-full"
+                />
+              )}
             </button>
             <button
               onClick={() => setLoginType('student')}
-              className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
+              className={`flex-1 py-3.5 text-sm font-semibold transition-colors relative ${
                 loginType === 'student'
-                  ? 'bg-primary-50 text-primary-600 border-b-2 border-primary-500'
+                  ? 'text-primary-600'
                   : 'text-text-secondary hover:bg-surface-tertiary'
               }`}
             >
               🧒 학생 로그인
+              {loginType === 'student' && (
+                <motion.div
+                  layoutId="login-tab-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 rounded-full"
+                />
+              )}
             </button>
           </div>
 

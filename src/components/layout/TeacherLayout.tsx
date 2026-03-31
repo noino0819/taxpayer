@@ -8,6 +8,7 @@ import { useAutoCloseMarket } from '@/hooks/useAutoCloseMarket'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
 import { Button } from '@/components/common/Button'
+import { BrandLogo } from '@/components/common/BrandLogo'
 import {
   HiOutlineHome,
   HiOutlineUserGroup,
@@ -100,8 +101,8 @@ export function TeacherLayout() {
       <aside className="hidden lg:flex w-[260px] bg-surface border-r border-border/50 flex-col fixed h-full">
         <div className="p-5 border-b border-border/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-sm font-extrabold shadow-[0_2px_8px_rgba(82,179,56,0.3)]">
-              TP
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white shadow-[0_2px_8px_rgba(82,179,56,0.3)]">
+              <BrandLogo size={22} className="text-white" />
             </div>
             <div>
               <h1 className="text-base font-extrabold text-primary-600">세금 내는 아이들</h1>
@@ -176,8 +177,8 @@ export function TeacherLayout() {
               <HiBars3 className="w-6 h-6" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-[10px] font-extrabold">
-                TP
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white">
+                <BrandLogo size={17} className="text-white" />
               </div>
               <div>
                 <h1 className="text-sm font-extrabold text-primary-600">세금 내는 아이들</h1>
@@ -221,8 +222,8 @@ export function TeacherLayout() {
             >
               <div className="flex items-center justify-between p-4 border-b border-border/50">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-xs font-extrabold">
-                    TP
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white">
+                    <BrandLogo size={19} className="text-white" />
                   </div>
                   <h1 className="text-base font-extrabold text-primary-600">세금 내는 아이들</h1>
                 </div>
