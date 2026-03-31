@@ -45,9 +45,20 @@ interface PaySchedule {
 
 const DEFAULT_SCHEDULE: PaySchedule = { frequency: 'weekly', dayOfWeek: 5, dayOfMonth: 1 }
 
+function getSeoulToday(): Date {
+  const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' })
+  const [y, m, d] = formatter.format(new Date()).split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function getSeoulDayOfWeek(): number {
+  const dow = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', weekday: 'short' }).format(new Date())
+  const map: Record<string, number> = { Sun: 7, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  return map[dow] ?? 1
+}
+
 function getNextPayday(schedule: PaySchedule): string {
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const today = getSeoulToday()
 
   if (schedule.frequency === 'monthly') {
     let target = new Date(today.getFullYear(), today.getMonth(), schedule.dayOfMonth)
@@ -55,7 +66,7 @@ function getNextPayday(schedule: PaySchedule): string {
     return `${target.getMonth() + 1}월 ${target.getDate()}일`
   }
 
-  const currentDay = today.getDay() === 0 ? 7 : today.getDay()
+  const currentDay = getSeoulDayOfWeek()
   let daysUntil = schedule.dayOfWeek - currentDay
   if (daysUntil <= 0) daysUntil += 7
   if (schedule.frequency === 'biweekly') {
