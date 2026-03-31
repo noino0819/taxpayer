@@ -166,17 +166,16 @@ export default function App() {
         }}
       >
         {(t) => (
-          <ToastBar toast={t} style={t.style}>
-            {({ icon, message }) => (
-              <div
-                className="flex items-center gap-2 w-full"
-                onClick={() => toast.dismiss(t.id)}
-              >
-                {icon}
-                {message}
-              </div>
-            )}
-          </ToastBar>
+          <div onClick={() => toast.dismiss(t.id)}>
+            <ToastBar toast={t} style={t.style}>
+              {({ icon, message }) => (
+                <div className="flex items-center gap-2 w-full">
+                  {icon}
+                  {message}
+                </div>
+              )}
+            </ToastBar>
+          </div>
         )}
       </Toaster>
     </QueryClientProvider>
