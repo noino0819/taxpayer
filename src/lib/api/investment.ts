@@ -336,3 +336,159 @@ export async function cancelEconomyEvent(eventId: string): Promise<void> {
     .eq('id', eventId)
   if (error) throw error
 }
+
+// ═══════════════════════════════════════════
+// 주식 거래 통계 (교사용)
+// ═══════════════════════════════════════════
+
+export interface StudentStockSummary {
+  userId: string
+  userName: string
+  totalBought: number
+  totalSold: number
+  totalBuyCost: number
+  totalSellRevenue: number
+  realizedPnl: number
+  holdingsValue: number
+  holdingsCount: number
+}
+
+export interface StockTradeSummary {
+  stockId: string
+  stockName: string
+  currentPrice: number
+  totalBuyVolume: number
+  totalSellVolume: number
+  totalBuyAmount: number
+  totalSellAmount: number
+  traders: { userId: string; userName: string; buyQty: number; sellQty: number; holdQty: number; pnl: number }[]
+}
+
+export async function getStudentStockSummaries(classroomId: string): Promise<StudentStockSummary[]> {
+  const { data: members } = await supabase
+    .from('memberships')
+    .select('user_id, user:users(name)')
+    .eq('classroom_id', classroomId)
+    .eq('status', 'active')
+  if (!members) return []
+
+  const students = members.filter((m: any) => m.user?.name)
+
+  const { data: stocks } = await supabase
+    .from('stocks')
+    .select('id, current_price')
+    .eq('classroom_id', classroomId)
+
+  const { data: allTxns } = await supabase
+    .from('stock_transactions')
+    .select('user_id, stock_id, type, quantity, price')
+    .in('stock_id', (stocks ?? []).map((s) => s.id))
+
+  const stockPriceMap = new Map((stocks ?? []).map((s) => [s.id, s.current_price]))
+  const txns = allTxns ?? []
+
+  return students.map((m: any) => {
+    const userTxns = txns.filter((t) => t.user_id === m.user_id)
+    const buys = userTxns.filter((t) => t.type === 'buy')
+    const sells = userTxns.filter((t) => t.type === 'sell')
+
+    const totalBuyCost = buys.reduce((s, t) => s + t.quantity * t.price, 0)
+    const totalSellRevenue = sells.reduce((s, t) => s + t.quantity * t.price, 0)
+    const totalBought = buys.reduce((s, t) => s + t.quantity, 0)
+    const totalSold = sells.reduce((s, t) => s + t.quantity, 0)
+
+    const holdingsByStock = new Map<string, { buyQty: number; sellQty: number; buyCost: number }>()
+    for (const t of userTxns) {
+      const h = holdingsByStock.get(t.stock_id) ?? { buyQty: 0, sellQty: 0, buyCost: 0 }
+      if (t.type === 'buy') { h.buyQty += t.quantity; h.buyCost += t.quantity * t.price }
+      else { h.sellQty += t.quantity }
+      holdingsByStock.set(t.stock_id, h)
+    }
+
+    let holdingsValue = 0
+    let holdingsCount = 0
+    for (const [stockId, h] of holdingsByStock) {
+      const qty = h.buyQty - h.sellQty
+      if (qty > 0) {
+        holdingsValue += qty * (stockPriceMap.get(stockId) ?? 0)
+        holdingsCount += qty
+      }
+    }
+
+    return {
+      userId: m.user_id,
+      userName: (m.user as any)?.name ?? '알 수 없음',
+      totalBought,
+      totalSold,
+      totalBuyCost,
+      totalSellRevenue,
+      realizedPnl: totalSellRevenue - (totalBought > 0 ? Math.round(totalBuyCost * (totalSold / totalBought)) : 0),
+      holdingsValue,
+      holdingsCount,
+    }
+  }).sort((a, b) => (b.holdingsValue + b.realizedPnl) - (a.holdingsValue + a.realizedPnl))
+}
+
+export async function getStockTradeSummaries(classroomId: string): Promise<StockTradeSummary[]> {
+  const { data: stocks } = await supabase
+    .from('stocks')
+    .select('id, name, current_price')
+    .eq('classroom_id', classroomId)
+    .eq('is_active', true)
+    .order('name')
+  if (!stocks) return []
+
+  const { data: members } = await supabase
+    .from('memberships')
+    .select('user_id, user:users(name)')
+    .eq('classroom_id', classroomId)
+    .eq('status', 'active')
+  const userNameMap = new Map((members ?? []).map((m: any) => [m.user_id, (m.user as any)?.name ?? '']))
+
+  const { data: allTxns } = await supabase
+    .from('stock_transactions')
+    .select('user_id, stock_id, type, quantity, price')
+    .in('stock_id', stocks.map((s) => s.id))
+
+  const txns = allTxns ?? []
+
+  return stocks.map((stock) => {
+    const stockTxns = txns.filter((t) => t.stock_id === stock.id)
+    const buys = stockTxns.filter((t) => t.type === 'buy')
+    const sells = stockTxns.filter((t) => t.type === 'sell')
+
+    const traderMap = new Map<string, { buyQty: number; sellQty: number; buyCost: number; sellRevenue: number }>()
+    for (const t of stockTxns) {
+      const tr = traderMap.get(t.user_id) ?? { buyQty: 0, sellQty: 0, buyCost: 0, sellRevenue: 0 }
+      if (t.type === 'buy') { tr.buyQty += t.quantity; tr.buyCost += t.quantity * t.price }
+      else { tr.sellQty += t.quantity; tr.sellRevenue += t.quantity * t.price }
+      traderMap.set(t.user_id, tr)
+    }
+
+    const traders = Array.from(traderMap.entries()).map(([userId, tr]) => {
+      const holdQty = tr.buyQty - tr.sellQty
+      const avgBuyPrice = tr.buyQty > 0 ? tr.buyCost / tr.buyQty : 0
+      const unrealizedPnl = holdQty * (stock.current_price - avgBuyPrice)
+      const realizedPnl = tr.sellQty > 0 ? tr.sellRevenue - tr.sellQty * avgBuyPrice : 0
+      return {
+        userId,
+        userName: userNameMap.get(userId) ?? '알 수 없음',
+        buyQty: tr.buyQty,
+        sellQty: tr.sellQty,
+        holdQty,
+        pnl: Math.round(realizedPnl + unrealizedPnl),
+      }
+    }).sort((a, b) => b.pnl - a.pnl)
+
+    return {
+      stockId: stock.id,
+      stockName: stock.name,
+      currentPrice: stock.current_price,
+      totalBuyVolume: buys.reduce((s, t) => s + t.quantity, 0),
+      totalSellVolume: sells.reduce((s, t) => s + t.quantity, 0),
+      totalBuyAmount: buys.reduce((s, t) => s + t.quantity * t.price, 0),
+      totalSellAmount: sells.reduce((s, t) => s + t.quantity * t.price, 0),
+      traders,
+    }
+  })
+}

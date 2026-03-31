@@ -75,6 +75,30 @@ export function useRejectStudent() {
   })
 }
 
+export function useResetStudentPassword() {
+  return useMutation({
+    mutationFn: (userId: string) => api.resetStudentPassword(userId),
+  })
+}
+
+export function useChangeStudentPassword() {
+  return useMutation({
+    mutationFn: (params: { userId: string; currentPassword: string; newPassword: string }) =>
+      api.changeStudentPassword(params.userId, params.currentPassword, params.newPassword),
+  })
+}
+
+export function useUpdateStudentAvatar() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { userId: string; avatarEmoji: string }) =>
+      api.updateStudentAvatar(params.userId, params.avatarEmoji),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['classroom-members'] })
+    },
+  })
+}
+
 export function useUpdateClassroom() {
   const qc = useQueryClient()
   const classroomId = useClassroomId()
@@ -601,6 +625,24 @@ export function useCancelEconomyEvent() {
   return useMutation({
     mutationFn: (eventId: string) => api.cancelEconomyEvent(eventId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['economy-events'] }),
+  })
+}
+
+export function useStudentStockSummaries() {
+  const classroomId = useClassroomId()
+  return useQuery({
+    queryKey: ['student-stock-summaries', classroomId],
+    queryFn: () => api.getStudentStockSummaries(classroomId!),
+    enabled: !!classroomId,
+  })
+}
+
+export function useStockTradeSummaries() {
+  const classroomId = useClassroomId()
+  return useQuery({
+    queryKey: ['stock-trade-summaries', classroomId],
+    queryFn: () => api.getStockTradeSummaries(classroomId!),
+    enabled: !!classroomId,
   })
 }
 

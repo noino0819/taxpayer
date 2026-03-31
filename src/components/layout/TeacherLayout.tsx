@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores/authStore'
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/hooks/useQueries'
 import { useAutoPaySalaries } from '@/hooks/useAutoPaySalaries'
+import { useAutoCloseMarket } from '@/hooks/useAutoCloseMarket'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
 import { Button } from '@/components/common/Button'
@@ -49,6 +50,7 @@ export function TeacherLayout() {
   const markAsReadMutation = useMarkAsRead()
   const markAllMutation = useMarkAllAsRead()
   useAutoPaySalaries()
+  useAutoCloseMarket()
   const unreadCount = (notifications ?? []).filter((n: any) => !n.is_read).length
 
   const openNotiDrawer = useCallback(() => {
