@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import { Card } from '@/components/common/Card'
-import { Badge } from '@/components/common/Badge'
 import { useAuthStore } from '@/stores/authStore'
 import { useSeats, useMyAccount, usePurchaseSeat } from '@/hooks/useQueries'
 import toast from 'react-hot-toast'

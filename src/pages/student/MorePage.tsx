@@ -16,7 +16,6 @@ import {
   HiOutlineChartBar,
   HiOutlineNewspaper,
   HiOutlineArrowRightOnRectangle,
-  HiOutlineCog6Tooth,
 } from 'react-icons/hi2'
 
 const menuItems = [
