@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores/authStore'
 import { useNotifications } from '@/hooks/useQueries'
+import { useAutoPaySalaries } from '@/hooks/useAutoPaySalaries'
 import {
   HiOutlineHome,
   HiOutlineUserGroup,
@@ -33,6 +34,7 @@ export function TeacherLayout() {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { data: notifications } = useNotifications()
+  useAutoPaySalaries()
   const unreadCount = (notifications ?? []).filter((n: any) => !n.is_read).length
 
   const handleLogout = () => {

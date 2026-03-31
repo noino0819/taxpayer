@@ -42,6 +42,30 @@ export const DEFAULT_JOBS = [
   { name: '보드게임 관리인', description: '학급 보드게임 대여 및 관리', maxCount: 2, salary: 10 },
 ]
 
+export const STOCK_EVENT_PRESETS = [
+  { title: '출석률 90% 돌파', description: '이번 주 학급 출석률이 90%를 넘겼습니다!', effects: { attendance: 15 }, type: 'positive' as const },
+  { title: '출석률 하락', description: '학급 출석률이 눈에 띄게 떨어졌습니다.', effects: { attendance: -12 }, type: 'negative' as const },
+  { title: '급식 잔반 제로', description: '오늘 급식 잔반이 거의 없었습니다!', effects: { satisfaction: 20 }, type: 'positive' as const },
+  { title: '급식 불만 폭주', description: '학생들의 급식 불만이 높아졌습니다.', effects: { satisfaction: -15 }, type: 'negative' as const },
+  { title: '교실 청소 우수', description: '교실이 반짝반짝 깨끗합니다!', effects: { cleanliness: 18 }, type: 'positive' as const },
+  { title: '교실 청소 불량', description: '교실 청소 상태가 좋지 않습니다.', effects: { cleanliness: -15 }, type: 'negative' as const },
+  { title: '독서왕 탄생', description: '학급 독서량이 크게 늘었습니다!', effects: { reading: 20 }, type: 'positive' as const },
+  { title: '독서 슬럼프', description: '학급 독서량이 줄어들고 있습니다.', effects: { reading: -10 }, type: 'negative' as const },
+  { title: '체육대회 우승', description: '체육대회에서 우리 반이 우승했습니다!', effects: { sports: 25 }, type: 'positive' as const },
+  { title: '체육 활동 부진', description: '체육 수업 참여도가 낮습니다.', effects: { sports: -12 }, type: 'negative' as const },
+  { title: '전교 모범 학급 선정', description: '우리 반이 전교 모범 학급으로 선정되었습니다!', effects: { attendance: 10, satisfaction: 10, cleanliness: 10 }, type: 'positive' as const },
+  { title: '학급 위기', description: '여러 문제가 동시에 발생했습니다.', effects: { attendance: -8, satisfaction: -8, cleanliness: -8 }, type: 'negative' as const },
+] as const
+
+export const STOCK_FACTOR_LABELS: Record<string, string> = {
+  attendance: '출석률',
+  satisfaction: '만족도',
+  cleanliness: '청소',
+  reading: '독서',
+  sports: '체육',
+  custom: '기타',
+}
+
 export const AVATAR_PRESETS: { category: string; emojis: string[] }[] = [
   { category: 'animal', emojis: ['🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐯', '🦁', '🐸', '🐵', '🐨', '🐷'] },
   { category: 'character', emojis: ['😊', '😎', '🤓', '🥳', '😇', '🤗', '🧑‍🎓', '👦', '👧', '🧒', '👶', '🦸'] },

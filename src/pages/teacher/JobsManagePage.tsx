@@ -1,5 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
@@ -11,8 +10,6 @@ import {
   useJobs, useJobAssignments, useCreateJob, useUpdateJob, useDeleteJob,
   usePaySalaries, useModuleConfigs, useUpdateModuleSettings,
 } from '@/hooks/useQueries'
-import { paySalaries, } from '@/lib/api/accounts'
-import { updateModuleSettings } from '@/lib/api/modules'
 import {
   HiOutlinePlusCircle, HiOutlinePencilSquare, HiOutlineTrash,
   HiOutlineUserGroup, HiOutlineBanknotes, HiOutlineCog6Tooth,
@@ -109,7 +106,6 @@ export function JobsManagePage() {
   const { currentClassroom, user } = useAuthStore()
   const classroomId = currentClassroom?.id
   const currency = currentClassroom?.currency_name || '미소'
-  const queryClient = useQueryClient()
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
