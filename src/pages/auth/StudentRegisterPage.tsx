@@ -17,6 +17,7 @@ export function StudentRegisterPage() {
   const [termsAgreed, setTermsAgreed] = useState(false)
   const [showPrivacyModal, setShowPrivacyModal] = useState<'privacy' | 'terms' | null>(null)
   const [form, setForm] = useState({
+    loginId: '',
     name: '',
     password: '',
     passwordConfirm: '',
@@ -30,6 +31,16 @@ export function StudentRegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (form.loginId.length < 2) {
+      toast.error('아이디는 2자 이상이어야 합니다.')
+      return
+    }
+
+    if (!/^[a-zA-Z0-9가-힣]+$/.test(form.loginId)) {
+      toast.error('아이디는 한글, 영문, 숫자만 사용할 수 있습니다.')
+      return
+    }
 
     if (form.password.length < 4) {
       toast.error('비밀번호는 4자리 이상이어야 합니다.')
@@ -53,7 +64,7 @@ export function StudentRegisterPage() {
 
     setIsLoading(true)
     try {
-      await signUpStudent(form.name, form.password, form.inviteCode, form.avatar)
+      await signUpStudent(form.loginId, form.name, form.password, form.inviteCode, form.avatar)
       setDone(true)
     } catch (err) {
       const message = err instanceof Error ? err.message : '가입에 실패했습니다.'
@@ -129,6 +140,13 @@ export function StudentRegisterPage() {
               value={form.inviteCode}
               onChange={(e) => updateForm('inviteCode', e.target.value.toUpperCase())}
               maxLength={6}
+              required
+            />
+            <Input
+              label="아이디"
+              placeholder="로그인에 사용할 아이디 (한글, 영문, 숫자)"
+              value={form.loginId}
+              onChange={(e) => updateForm('loginId', e.target.value)}
               required
             />
             <Input

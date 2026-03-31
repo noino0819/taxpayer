@@ -24,6 +24,7 @@ export type ModuleStatus = 'on' | 'off'
 export interface User {
   id: string
   email: string | null
+  login_id: string | null
   name: string
   role: UserRole
   password: string | null

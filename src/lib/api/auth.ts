@@ -55,7 +55,7 @@ export async function signInTeacher(email: string, password: string) {
   return data as User
 }
 
-export async function signInStudent(name: string, inviteCode: string, password: string) {
+export async function signInStudent(loginId: string, inviteCode: string, password: string) {
   const { data: classroom, error: classError } = await supabase
     .from('classrooms')
     .select('id')
@@ -67,12 +67,12 @@ export async function signInStudent(name: string, inviteCode: string, password: 
   const { data: user, error: userError } = await supabase
     .from('users')
     .select('*, memberships!inner(classroom_id, status)')
-    .eq('name', name)
+    .eq('login_id', loginId)
     .eq('password', password)
     .eq('role', 'student')
     .eq('memberships.classroom_id', classroom.id)
     .single()
-  if (userError) throw new Error('이름 또는 비밀번호가 일치하지 않습니다.')
+  if (userError) throw new Error('아이디 또는 비밀번호가 일치하지 않습니다.')
 
   const membership = (user as any).memberships?.[0]
   if (membership?.status === 'pending') {
@@ -85,7 +85,7 @@ export async function signInStudent(name: string, inviteCode: string, password: 
   return user as User
 }
 
-export async function signUpStudent(name: string, password: string, inviteCode: string, avatarEmoji: string) {
+export async function signUpStudent(loginId: string, name: string, password: string, inviteCode: string, avatarEmoji: string) {
   const { data: classroom, error: classError } = await supabase
     .from('classrooms')
     .select('id, name, school, grade, class_num')
@@ -94,11 +94,19 @@ export async function signUpStudent(name: string, password: string, inviteCode: 
     .single()
   if (classError) throw new Error('유효하지 않은 초대 코드입니다.')
 
+  const { data: duplicateId } = await supabase
+    .from('users')
+    .select('id, memberships!inner(classroom_id)')
+    .eq('login_id', loginId)
+    .eq('role', 'student')
+    .eq('memberships.classroom_id', classroom.id)
+    .maybeSingle()
+  if (duplicateId) throw new Error('이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.')
+
   const { data: existing } = await supabase
     .from('users')
     .select('id, memberships!inner(classroom_id, status)')
-    .eq('name', name)
-    .eq('password', password)
+    .eq('login_id', loginId)
     .eq('role', 'student')
     .eq('memberships.classroom_id', classroom.id)
     .maybeSingle()
@@ -111,7 +119,7 @@ export async function signUpStudent(name: string, password: string, inviteCode: 
 
   const { data: user, error: userError } = await supabase
     .from('users')
-    .insert({ name, password, role: 'student', avatar_preset_id: avatarEmoji })
+    .insert({ login_id: loginId, name, password, role: 'student', avatar_preset_id: avatarEmoji })
     .select()
     .single()
   if (userError) throw userError

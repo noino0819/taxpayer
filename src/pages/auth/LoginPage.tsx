@@ -16,7 +16,7 @@ export function LoginPage() {
   )
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [studentName, setStudentName] = useState('')
+  const [studentLoginId, setStudentLoginId] = useState('')
   const [studentPassword, setStudentPassword] = useState('')
   const [inviteCode, setInviteCode] = useState(searchParams.get('code')?.toUpperCase() || '')
   const [isLoading, setIsLoading] = useState(false)
@@ -58,7 +58,7 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      const user = await signInStudent(studentName, inviteCode, studentPassword)
+      const user = await signInStudent(studentLoginId, inviteCode, studentPassword)
       setUser(user)
 
       const classroom = await getClassroomByInviteCode(inviteCode)
@@ -165,10 +165,10 @@ export function LoginPage() {
             ) : (
               <form onSubmit={handleStudentLogin} className="space-y-4">
                 <Input
-                  label="이름"
-                  placeholder="이름을 입력하세요"
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
+                  label="아이디"
+                  placeholder="아이디를 입력하세요"
+                  value={studentLoginId}
+                  onChange={(e) => setStudentLoginId(e.target.value)}
                   required
                 />
                 <Input
