@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
+import { PasswordStrength } from '@/components/common/PasswordStrength'
 import { useAuthStore } from '@/stores/authStore'
 import { signUpTeacher } from '@/lib/api/auth'
 import { createClassroom } from '@/lib/api/classrooms'
@@ -99,6 +100,11 @@ export function TeacherRegisterPage() {
               value={form.password}
               onChange={(e) => updateForm('password', e.target.value)}
               required
+            />
+            <PasswordStrength
+              password={form.password}
+              confirmPassword={form.passwordConfirm}
+              showConfirmMatch
             />
             <Input
               label="비밀번호 확인"
