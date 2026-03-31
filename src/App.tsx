@@ -19,7 +19,7 @@ const StudentsPage = lazy(() => import('@/pages/teacher/StudentsPage').then(m =>
 const JobsManagePage = lazy(() => import('@/pages/teacher/JobsManagePage').then(m => ({ default: m.JobsManagePage })))
 const BankbookManagePage = lazy(() => import('@/pages/teacher/BankbookManagePage').then(m => ({ default: m.BankbookManagePage })))
 const EconomyPage = lazy(() => import('@/pages/teacher/EconomyPage').then(m => ({ default: m.EconomyPage })))
-const NotificationsPage = lazy(() => import('@/pages/teacher/NotificationsPage').then(m => ({ default: m.NotificationsPage })))
+
 const SettingsPage = lazy(() => import('@/pages/teacher/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const TaxManagePage = lazy(() => import('@/pages/teacher/TaxManagePage').then(m => ({ default: m.TaxManagePage })))
 
@@ -112,7 +112,6 @@ export default function App() {
               <Route path="jobs" element={<JobsManagePage />} />
               <Route path="bankbook" element={<BankbookManagePage />} />
               <Route path="economy" element={<EconomyPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
               <Route path="tax" element={<TaxManagePage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
