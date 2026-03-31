@@ -150,7 +150,7 @@ export default function App() {
 
       <Toaster
         position="top-center"
-        containerStyle={{ top: 'env(safe-area-inset-top, 8px)' }}
+        containerStyle={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
         toastOptions={{
           duration: 3000,
           style: {
