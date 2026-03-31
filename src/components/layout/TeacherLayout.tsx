@@ -49,7 +49,7 @@ export function TeacherLayout() {
               TP
             </div>
             <div>
-              <h1 className="text-base font-extrabold text-primary-600">TaxPayer</h1>
+              <h1 className="text-base font-extrabold text-primary-600">세금 내는 아이들</h1>
               {currentClassroom && (
                 <p className="text-[11px] text-text-tertiary leading-none mt-0.5">
                   {currentClassroom.school} {currentClassroom.grade}-{currentClassroom.class_num}
@@ -113,7 +113,7 @@ export function TeacherLayout() {
                 TP
               </div>
               <div>
-                <h1 className="text-sm font-extrabold text-primary-600">TaxPayer</h1>
+                <h1 className="text-sm font-extrabold text-primary-600">세금 내는 아이들</h1>
                 {currentClassroom && (
                   <p className="text-[10px] text-text-tertiary leading-none">
                     {currentClassroom.school} {currentClassroom.grade}-{currentClassroom.class_num}
@@ -156,7 +156,7 @@ export function TeacherLayout() {
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-xs font-extrabold">
                     TP
                   </div>
-                  <h1 className="text-base font-extrabold text-primary-600">TaxPayer</h1>
+                  <h1 className="text-base font-extrabold text-primary-600">세금 내는 아이들</h1>
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}

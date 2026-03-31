@@ -94,7 +94,7 @@ export function LoginPage() {
           >
             🏫
           </motion.div>
-          <h1 className="text-3xl font-bold text-text-primary">세금내는 아이들</h1>
+          <h1 className="text-3xl font-bold text-text-primary">세금 내는 아이들</h1>
           <p className="text-text-secondary mt-1">학급 화폐 경제 교육 플랫폼</p>
         </div>
 
