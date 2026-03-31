@@ -9,6 +9,8 @@ import { TeacherLayout } from '@/components/layout/TeacherLayout'
 import { StudentLayout } from '@/components/layout/StudentLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { TeacherRegisterPage } from '@/pages/auth/TeacherRegisterPage'
+import { StudentRegisterPage } from '@/pages/auth/StudentRegisterPage'
+import { PendingApprovalPage } from '@/pages/auth/PendingApprovalPage'
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage'
 
@@ -92,6 +94,8 @@ export default function App() {
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register/teacher" element={<TeacherRegisterPage />} />
+            <Route path="/register/student" element={<StudentRegisterPage />} />
+            <Route path="/pending-approval" element={<PendingApprovalPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 

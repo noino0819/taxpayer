@@ -5,7 +5,7 @@ import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
 import { Tooltip } from '@/components/common/Tooltip'
 import { useAuthStore } from '@/stores/authStore'
-import { useAccountStats, useClassroomTransactions, useJobs, useFines } from '@/hooks/useQueries'
+import { useAccountStats, useClassroomTransactions, useJobs, useFines, usePendingMembers } from '@/hooks/useQueries'
 import {
   HiOutlineBanknotes,
   HiOutlineUserGroup,
@@ -24,15 +24,17 @@ export function DashboardPage() {
   const { currentClassroom } = useAuthStore()
   const currency = currentClassroom?.currency_name || '미소'
   const [showQR, setShowQR] = useState(false)
-  const inviteUrl = `${window.location.origin}/login?tab=student&code=${currentClassroom?.invite_code || ''}`
+  const inviteUrl = `${window.location.origin}/register/student?code=${currentClassroom?.invite_code || ''}`
 
   const { data: stats } = useAccountStats()
   const { data: transactions } = useClassroomTransactions(5)
   const { data: jobs } = useJobs()
   const { data: pendingFines } = useFines('pending')
+  const { data: pendingMembers } = usePendingMembers()
 
   const activeJobs = jobs?.length ?? 0
   const pendingCount = pendingFines?.length ?? 0
+  const pendingStudentCount = pendingMembers?.length ?? 0
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
@@ -54,6 +56,9 @@ export function DashboardPage() {
               <HiOutlineUserGroup className="w-5 h-5 text-primary-600" />
             </div>
           </div>
+          {pendingStudentCount > 0 && (
+            <Badge variant="warning" size="sm">{pendingStudentCount}명 승인 대기</Badge>
+          )}
         </Card>
 
         <Card>

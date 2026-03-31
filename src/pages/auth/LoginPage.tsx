@@ -68,6 +68,10 @@ export function LoginPage() {
       navigate('/student')
     } catch (err) {
       const message = err instanceof Error ? err.message : '로그인에 실패했습니다.'
+      if (message === 'PENDING_APPROVAL') {
+        navigate('/pending-approval')
+        return
+      }
       toast.error(message)
     } finally {
       setIsLoading(false)
@@ -183,6 +187,14 @@ export function LoginPage() {
                 <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
                   로그인
                 </Button>
+                <div className="text-center">
+                  <Link
+                    to={`/register/student${inviteCode ? `?code=${inviteCode}` : ''}`}
+                    className="text-sm text-primary-500 hover:underline"
+                  >
+                    처음이에요! 학급 참여하기
+                  </Link>
+                </div>
               </form>
             )}
           </div>

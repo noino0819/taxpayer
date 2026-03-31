@@ -41,6 +41,40 @@ export function useClassroomMembers() {
   })
 }
 
+export function usePendingMembers() {
+  const classroomId = useClassroomId()
+  return useQuery({
+    queryKey: ['pending-members', classroomId],
+    queryFn: () => api.getPendingMembers(classroomId!),
+    enabled: !!classroomId,
+    refetchInterval: 15_000,
+  })
+}
+
+export function useApproveStudent() {
+  const qc = useQueryClient()
+  const classroomId = useClassroomId()
+  return useMutation({
+    mutationFn: (params: { membershipId: string; userId: string }) =>
+      api.approveStudent(params.membershipId, classroomId!, params.userId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pending-members'] })
+      qc.invalidateQueries({ queryKey: ['classroom-members'] })
+      qc.invalidateQueries({ queryKey: ['accounts'] })
+    },
+  })
+}
+
+export function useRejectStudent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (membershipId: string) => api.rejectStudent(membershipId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pending-members'] })
+    },
+  })
+}
+
 export function useUpdateClassroom() {
   const qc = useQueryClient()
   const classroomId = useClassroomId()
@@ -201,6 +235,26 @@ export function useCreateJob() {
   return useMutation({
     mutationFn: api.createJob,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs'] }),
+  })
+}
+
+export function useUpdateJob() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { jobId: string; updates: Partial<Parameters<typeof api.updateJob>[1]> }) =>
+      api.updateJob(params.jobId, params.updates),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['jobs'] }),
+  })
+}
+
+export function useDeleteJob() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (jobId: string) => api.deleteJob(jobId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['jobs'] })
+      qc.invalidateQueries({ queryKey: ['job-assignments'] })
+    },
   })
 }
 

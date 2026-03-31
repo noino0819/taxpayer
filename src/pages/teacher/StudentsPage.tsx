@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Modal } from '@/components/common/Modal'
 import { useAuthStore } from '@/stores/authStore'
-import { useClassroomMembers, useAllAccounts, useDeposit, useWithdraw } from '@/hooks/useQueries'
+import { useClassroomMembers, useAllAccounts, useDeposit, useWithdraw, usePendingMembers, useApproveStudent, useRejectStudent } from '@/hooks/useQueries'
 import { CREDIT_GRADES } from '@/lib/constants'
-import { HiOutlineMagnifyingGlass, HiOutlinePlusCircle } from 'react-icons/hi2'
+import { HiOutlineMagnifyingGlass, HiOutlinePlusCircle, HiOutlineCheckCircle, HiOutlineXCircle } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
 export function StudentsPage() {
@@ -21,8 +21,11 @@ export function StudentsPage() {
 
   const { data: members } = useClassroomMembers()
   const { data: accounts } = useAllAccounts()
+  const { data: pendingMembers } = usePendingMembers()
   const depositMutation = useDeposit()
   const withdrawMutation = useWithdraw()
+  const approveMutation = useApproveStudent()
+  const rejectMutation = useRejectStudent()
 
   const students = (members ?? [])
     .filter((m) => m.user?.role === 'student')
@@ -83,6 +86,80 @@ export function StudentsPage() {
           학생 추가
         </Button>
       </div>
+
+      <AnimatePresence>
+        {(pendingMembers ?? []).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-warning-50 border border-warning-200 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">⏳</span>
+                <h3 className="font-semibold text-warning-800">
+                  가입 승인 대기 ({pendingMembers!.length}명)
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {pendingMembers!.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between bg-surface rounded-xl px-4 py-3 border border-border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{m.user?.avatar_preset_id || '😊'}</span>
+                      <div>
+                        <p className="font-medium text-sm">{m.user?.name}</p>
+                        <p className="text-xs text-text-tertiary">
+                          {new Date(m.joined_at).toLocaleDateString('ko-KR')} 신청
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        icon={<HiOutlineXCircle className="w-4 h-4" />}
+                        onClick={async () => {
+                          try {
+                            await rejectMutation.mutateAsync(m.id)
+                            toast.success(`${m.user?.name}의 가입을 거절했습니다.`)
+                          } catch {
+                            toast.error('거절에 실패했습니다.')
+                          }
+                        }}
+                        isLoading={rejectMutation.isPending}
+                      >
+                        거절
+                      </Button>
+                      <Button
+                        size="sm"
+                        icon={<HiOutlineCheckCircle className="w-4 h-4" />}
+                        onClick={async () => {
+                          try {
+                            await approveMutation.mutateAsync({
+                              membershipId: m.id,
+                              userId: m.user_id,
+                            })
+                            toast.success(`${m.user?.name}의 가입을 승인했습니다!`)
+                          } catch {
+                            toast.error('승인에 실패했습니다.')
+                          }
+                        }}
+                        isLoading={approveMutation.isPending}
+                      >
+                        승인
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Input
         placeholder="학생 이름 검색..."
@@ -192,13 +269,14 @@ export function StudentsPage() {
           <div className="flex flex-col items-center gap-3 py-2">
             <p className="text-sm text-text-secondary">또는 QR 코드를 스캔하세요</p>
             <QRCodeSVG
-              value={`${window.location.origin}/login?tab=student&code=${currentClassroom?.invite_code || ''}`}
+              value={`${window.location.origin}/register/student?code=${currentClassroom?.invite_code || ''}`}
               size={160}
               level="M"
             />
           </div>
           <p className="text-xs text-text-tertiary text-center">
-            학생이 QR을 스캔하거나 초대 코드를 입력하면 자동으로 학급에 참여합니다.
+            학생이 QR을 스캔하거나 초대 코드를 입력하고 가입 신청하면,<br />
+            선생님이 승인한 뒤 학급에 참여할 수 있습니다.
           </p>
         </div>
       </Modal>

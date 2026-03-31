@@ -46,7 +46,7 @@ export function SettingsPage() {
   const [currencyName, setCurrencyName] = useState(currentClassroom?.currency_name || '미소')
   const [initialBalance, setInitialBalance] = useState(String(currentClassroom?.initial_balance || 50))
   const [showQR, setShowQR] = useState(false)
-  const inviteUrl = `${window.location.origin}/login?tab=student&code=${currentClassroom?.invite_code || ''}`
+  const inviteUrl = `${window.location.origin}/register/student?code=${currentClassroom?.invite_code || ''}`
 
   const { data: moduleConfigs } = useModuleConfigs()
   const toggleModuleMutation = useToggleModule()

@@ -56,7 +56,7 @@ export interface Membership {
   user_id: string
   classroom_id: string
   joined_at: string
-  status: 'active' | 'inactive'
+  status: 'active' | 'inactive' | 'pending'
   user?: User
 }
 
