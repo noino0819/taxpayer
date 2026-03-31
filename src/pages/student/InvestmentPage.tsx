@@ -16,7 +16,7 @@ import {
   useEconomyEvents,
 } from '@/hooks/useQueries'
 import { STOCK_FACTOR_LABELS } from '@/lib/constants'
-import type { Stock, StockPriceHistory } from '@/types/database'
+import type { Stock } from '@/types/database'
 import toast from 'react-hot-toast'
 
 export function InvestmentPage() {
