@@ -28,7 +28,7 @@ export function BankPage() {
       return
     }
     if (amt > (account.balance ?? 0)) {
-      toast.error('잔액이 부족합니다.')
+      toast.error('잔액이 부족해요! 💸')
       return
     }
     try {
@@ -39,11 +39,11 @@ export function BankPage() {
         principal: amt,
         termDays: selectedProduct.min_term_days,
       })
-      toast.success(`${selectedProduct.name}에 가입했습니다!`)
+      toast.success(`${selectedProduct.name}에 가입했어요! 🎉`)
       setSelectedProduct(null)
       setPrincipal('')
     } catch {
-      toast.error('가입에 실패했습니다.')
+      toast.error('가입에 실패했어요.')
     }
   }
 
@@ -53,19 +53,22 @@ export function BankPage() {
 
       {(mySavings ?? []).length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-text-secondary mb-3">내 적금</h3>
+          <h3 className="text-sm font-bold text-text-secondary mb-3">내 적금</h3>
           <div className="space-y-3">
             {(mySavings ?? []).map((s: any) => (
-              <Card key={s.id} padding="sm" className="!border-accent-200">
+              <Card key={s.id} padding="sm" className="!border-accent-200/80 !bg-gradient-to-r !from-accent-50/50 !to-surface">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-semibold">{s.product.name}</h4>
-                    <p className="text-sm text-text-secondary mt-0.5">원금: {s.principal}{currency}</p>
-                    <p className="text-xs text-text-tertiary">
-                      만기: {new Date(s.maturity_at).toLocaleDateString('ko-KR')}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-accent-100 flex items-center justify-center text-xl">💎</div>
+                    <div>
+                      <h4 className="font-bold">{s.product.name}</h4>
+                      <p className="text-sm text-text-secondary mt-0.5">원금: {s.principal}{currency}</p>
+                      <p className="text-xs text-text-tertiary">
+                        만기: {new Date(s.maturity_at).toLocaleDateString('ko-KR')}
+                      </p>
+                    </div>
                   </div>
-                  <Badge variant="accent">{s.product.interest_rate}%</Badge>
+                  <Badge variant="accent" size="md">{s.product.interest_rate}%</Badge>
                 </div>
               </Card>
             ))}
@@ -74,31 +77,39 @@ export function BankPage() {
       )}
 
       <div>
-        <h3 className="text-sm font-semibold text-text-secondary mb-3">저축 상품</h3>
+        <h3 className="text-sm font-bold text-text-secondary mb-3">저축 상품</h3>
         <div className="space-y-3">
           {(products ?? []).map((product) => (
             <Card key={product.id} padding="sm" hover onClick={() => setSelectedProduct(product)} className="cursor-pointer">
               <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-semibold">{product.name}</h4>
-                    <Badge variant={product.type === 'compound' ? 'primary' : 'neutral'}>
-                      {product.type === 'compound' ? '복리' : '단리'}
-                    </Badge>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-primary-100 flex items-center justify-center text-xl flex-shrink-0">
+                    {product.type === 'compound' ? '✨' : '💰'}
                   </div>
-                  <p className="text-sm text-text-secondary mt-1">
-                    이자율: <span className="font-bold text-accent-600">{product.interest_rate}%</span>
-                  </p>
-                  <p className="text-xs text-text-tertiary mt-0.5">
-                    최소 {product.min_term_days}일 · {product.conditions}
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold">{product.name}</h4>
+                      <Badge variant={product.type === 'compound' ? 'primary' : 'neutral'}>
+                        {product.type === 'compound' ? '복리' : '단리'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-text-secondary mt-1">
+                      이자율: <span className="font-extrabold text-accent-600">{product.interest_rate}%</span>
+                    </p>
+                    <p className="text-xs text-text-tertiary mt-0.5">
+                      최소 {product.min_term_days}일 · {product.conditions}
+                    </p>
+                  </div>
                 </div>
                 <Button size="sm" variant="secondary">가입</Button>
               </div>
             </Card>
           ))}
           {(products ?? []).length === 0 && (
-            <p className="text-center text-text-tertiary py-4">저축 상품이 없습니다.</p>
+            <div className="text-center py-8">
+              <span className="text-3xl">🏦</span>
+              <p className="text-text-tertiary mt-2">저축 상품이 없어요</p>
+            </div>
           )}
         </div>
       </div>
@@ -110,18 +121,20 @@ export function BankPage() {
       >
         {selectedProduct && (
           <div className="space-y-4">
-            <div className="bg-surface-tertiary rounded-xl p-3 space-y-2">
+            <div className="bg-gradient-to-br from-primary-50 to-surface-tertiary rounded-2xl p-4 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-text-secondary">이자율</span>
-                <span className="font-bold text-accent-600">{selectedProduct.interest_rate}%</span>
+                <span className="font-extrabold text-accent-600">{selectedProduct.interest_rate}%</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-text-secondary">유형</span>
-                <span>{selectedProduct.type === 'compound' ? '복리' : '단리'}</span>
+                <Badge variant={selectedProduct.type === 'compound' ? 'primary' : 'neutral'}>
+                  {selectedProduct.type === 'compound' ? '복리' : '단리'}
+                </Badge>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-text-secondary">최소 기간</span>
-                <span>{selectedProduct.min_term_days}일</span>
+                <span className="font-bold">{selectedProduct.min_term_days}일</span>
               </div>
             </div>
             <Input
@@ -131,7 +144,7 @@ export function BankPage() {
               value={principal}
               onChange={(e) => setPrincipal(e.target.value)}
             />
-            <p className="text-xs text-text-tertiary">내 잔액: {account?.balance ?? 0}{currency}</p>
+            <p className="text-xs text-text-tertiary">💰 내 잔액: {account?.balance ?? 0}{currency}</p>
             <Button className="w-full" onClick={handleOpen} isLoading={openMutation.isPending}>
               가입하기
             </Button>

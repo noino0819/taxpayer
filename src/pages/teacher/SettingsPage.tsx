@@ -96,12 +96,12 @@ export function SettingsPage() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">학급 설정</h1>
+        <h1 className="text-2xl font-extrabold">학급 설정</h1>
         <p className="text-text-secondary text-sm mt-1">학급 화폐 및 모듈 설정</p>
       </div>
 
       <Card>
-        <h3 className="font-semibold mb-4">기본 설정</h3>
+        <h3 className="font-bold mb-4">기본 설정</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="화폐 이름"
@@ -122,12 +122,12 @@ export function SettingsPage() {
             설정 저장
           </Button>
         </div>
-        <div className="mt-4 bg-primary-50 rounded-xl p-4">
+        <div className="mt-4 bg-gradient-to-br from-primary-50 to-surface rounded-2xl p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">학급 초대 코드</p>
+              <p className="text-sm font-bold">학급 초대 코드</p>
               {!showQR && (
-                <p className="text-2xl font-bold text-primary-600 tracking-widest mt-1">
+                <p className="text-2xl font-extrabold text-primary-600 tracking-[0.2em] mt-1">
                   {currentClassroom?.invite_code}
                 </p>
               )}
@@ -162,7 +162,7 @@ export function SettingsPage() {
       </Card>
 
       <Card>
-        <h3 className="font-semibold mb-4">모듈 ON/OFF</h3>
+        <h3 className="font-bold mb-4">모듈 ON/OFF</h3>
         <p className="text-sm text-text-secondary mb-4">
           학급 분위기와 학생 수준에 맞게 기능을 하나씩 활성화하세요.
           비활성화된 모듈은 학생 화면에서 완전히 숨겨집니다.
@@ -186,23 +186,23 @@ export function SettingsPage() {
             ([key, config]) => (
               <div
                 key={key}
-                className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-surface-tertiary transition-colors"
+                className="flex items-center justify-between p-3.5 rounded-2xl border border-border/50 hover:bg-surface-tertiary transition-all"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-semibold">{config.name}</h4>
+                    <h4 className="text-sm font-bold">{config.name}</h4>
                     {config.defaultEnabled && <Badge variant="neutral">기본 ON</Badge>}
                   </div>
                   <p className="text-xs text-text-tertiary mt-0.5">{config.description}</p>
                 </div>
                 <button
                   onClick={() => handleToggle(key)}
-                  className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-                    modules[key] ? 'bg-accent-500' : 'bg-border'
+                  className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
+                    modules[key] ? 'bg-gradient-to-r from-accent-500 to-accent-400 shadow-[0_2px_6px_rgba(16,185,129,0.3)]' : 'bg-border'
                   }`}
                 >
                   <span
-                    className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                    className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${
                       modules[key] ? 'left-6' : 'left-1'
                     }`}
                   />
@@ -214,7 +214,7 @@ export function SettingsPage() {
       </Card>
 
       <Card>
-        <h3 className="font-semibold mb-4">운영 모드</h3>
+        <h3 className="font-bold mb-4">운영 모드</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
             { mode: 'auto', label: '완전 자동', desc: '실제 경제 지표에 연동, 교사 부담 최소', emoji: '🤖' },
@@ -234,14 +234,14 @@ export function SettingsPage() {
                   toast.error('모드 변경에 실패했습니다.')
                 }
               }}
-              className={`p-4 rounded-xl border text-left transition-all ${
+              className={`p-5 rounded-2xl border-2 text-left transition-all ${
                 currentClassroom?.economy_mode === option.mode
-                  ? 'border-primary-400 bg-primary-50 ring-2 ring-primary-200'
-                  : 'border-border hover:border-primary-200'
+                  ? 'border-primary-400 bg-gradient-to-br from-primary-50 to-surface ring-2 ring-primary-200/50 shadow-[0_2px_8px_rgba(99,102,241,0.08)]'
+                  : 'border-border/50 hover:border-primary-200 hover:bg-surface-tertiary'
               }`}
             >
-              <span className="text-2xl">{option.emoji}</span>
-              <h4 className="font-semibold mt-2">{option.label}</h4>
+              <span className="text-3xl">{option.emoji}</span>
+              <h4 className="font-bold mt-2">{option.label}</h4>
               <p className="text-xs text-text-tertiary mt-1">{option.desc}</p>
             </button>
           ))}

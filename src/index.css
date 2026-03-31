@@ -3,25 +3,25 @@
 @theme {
   --font-sans: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
 
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
 
-  --color-accent-50: #f0fdf4;
-  --color-accent-100: #dcfce7;
-  --color-accent-200: #bbf7d0;
-  --color-accent-300: #86efac;
-  --color-accent-400: #4ade80;
-  --color-accent-500: #22c55e;
-  --color-accent-600: #16a34a;
-  --color-accent-700: #15803d;
+  --color-accent-50: #ecfdf5;
+  --color-accent-100: #d1fae5;
+  --color-accent-200: #a7f3d0;
+  --color-accent-300: #6ee7b7;
+  --color-accent-400: #34d399;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+  --color-accent-700: #047857;
 
   --color-warning-50: #fffbeb;
   --color-warning-100: #fef3c7;
@@ -30,22 +30,22 @@
   --color-warning-400: #fbbf24;
   --color-warning-500: #f59e0b;
 
-  --color-danger-50: #fef2f2;
-  --color-danger-100: #fee2e2;
-  --color-danger-200: #fecaca;
-  --color-danger-300: #fca5a5;
-  --color-danger-400: #f87171;
-  --color-danger-500: #ef4444;
-  --color-danger-600: #dc2626;
+  --color-danger-50: #fff1f2;
+  --color-danger-100: #ffe4e6;
+  --color-danger-200: #fecdd3;
+  --color-danger-300: #fda4af;
+  --color-danger-400: #fb7185;
+  --color-danger-500: #f43f5e;
+  --color-danger-600: #e11d48;
 
   --color-surface: #ffffff;
-  --color-surface-secondary: #f8fafc;
-  --color-surface-tertiary: #f1f5f9;
-  --color-border: #e2e8f0;
-  --color-border-light: #f1f5f9;
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #64748b;
-  --color-text-tertiary: #94a3b8;
+  --color-surface-secondary: #faf8ff;
+  --color-surface-tertiary: #f3f0ff;
+  --color-border: #e5e1f0;
+  --color-border-light: #f0edf8;
+  --color-text-primary: #1e1b3a;
+  --color-text-secondary: #5b5675;
+  --color-text-tertiary: #9490ab;
 }
 
 @layer base {
@@ -78,13 +78,11 @@
     flex-direction: column;
   }
 
-  /* iOS safe area insets */
   .safe-top { padding-top: env(safe-area-inset-top, 0px); }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .safe-left { padding-left: env(safe-area-inset-left, 0px); }
   .safe-right { padding-right: env(safe-area-inset-right, 0px); }
 
-  /* 모바일 터치 최적화 */
   button, a, [role="button"] {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -92,21 +90,18 @@
   }
 
   input, textarea, select {
-    font-size: 16px; /* iOS 줌 방지 */
+    font-size: 16px;
   }
 
-  /* 모바일 스크롤바 숨기기 */
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  /* Pull-to-refresh 차단 (PWA에서 불필요한 네이티브 제스처 방지) */
   @media (display-mode: standalone) {
     body {
       overscroll-behavior-y: contain;
     }
   }
 
-  /* Standalone PWA 모드에서 상태바 영역 고려 */
   @media (display-mode: standalone) {
     .pwa-header {
       padding-top: env(safe-area-inset-top, 0px);

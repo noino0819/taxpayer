@@ -34,15 +34,15 @@ export function BoardPage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <h2 className="text-xl font-bold">📋 학급 게시판</h2>
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
         {tabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setActiveTab(tab.value)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${
               activeTab === tab.value
-                ? 'bg-primary-500 text-white'
-                : 'bg-surface border border-border text-text-secondary'
+                ? 'bg-primary-500 text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)]'
+                : 'bg-surface border border-border/60 text-text-secondary'
             }`}
           >
             <span>{tab.emoji}</span>
@@ -53,7 +53,10 @@ export function BoardPage() {
 
       <div className="space-y-3">
         {filtered.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">게시글이 없습니다.</p>
+          <div className="text-center py-12">
+            <span className="text-4xl">📭</span>
+            <p className="text-text-tertiary mt-3 font-medium">게시글이 없어요</p>
+          </div>
         ) : (
           filtered.map((noti) => {
             const typeInfo = typeLabels[noti.type]
@@ -61,11 +64,11 @@ export function BoardPage() {
               <Card key={noti.id} padding="sm">
                 <div className="flex items-start gap-2 mb-2">
                   {typeInfo && <Badge variant={typeInfo.variant}>{typeInfo.label}</Badge>}
-                  <h4 className="font-semibold text-sm flex-1">{noti.title}</h4>
+                  <h4 className="font-bold text-sm flex-1">{noti.title}</h4>
                 </div>
                 <p className="text-sm text-text-secondary leading-relaxed">{noti.message}</p>
-                <div className="flex items-center justify-end mt-3 pt-2 border-t border-border-light">
-                  <span className="text-xs text-text-tertiary">
+                <div className="flex items-center justify-end mt-3 pt-2.5 border-t border-border-light/60">
+                  <span className="text-xs text-text-tertiary font-medium">
                     {new Date(noti.created_at).toLocaleDateString('ko-KR')}
                   </span>
                 </div>

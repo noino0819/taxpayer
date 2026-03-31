@@ -4,6 +4,7 @@ import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Modal } from '@/components/common/Modal'
+import { Badge } from '@/components/common/Badge'
 import { useAuthStore } from '@/stores/authStore'
 import { useStocks, useMyHoldings, useMyAccount, useBuyStock, useSellStock } from '@/hooks/useQueries'
 import toast from 'react-hot-toast'
@@ -42,24 +43,24 @@ export function InvestmentPage() {
       if (tradeType === 'buy') {
         const total = selectedStock.current_price * qty
         if (total > (account.balance ?? 0)) {
-          toast.error('잔액이 부족합니다.')
+          toast.error('잔액이 부족해요! 💸')
           return
         }
         await buyMutation.mutateAsync(params)
-        toast.success(`${selectedStock.name} ${qty}주를 매수했습니다!`)
+        toast.success(`${selectedStock.name} ${qty}주를 매수했어요! 📈`)
       } else {
         const holding = (holdings ?? []).find((h) => h.stockId === selectedStock.id)
         if (!holding || holding.quantity < qty) {
-          toast.error('보유 수량이 부족합니다.')
+          toast.error('보유 수량이 부족해요.')
           return
         }
         await sellMutation.mutateAsync(params)
-        toast.success(`${selectedStock.name} ${qty}주를 매도했습니다!`)
+        toast.success(`${selectedStock.name} ${qty}주를 매도했어요! 💰`)
       }
       setSelectedStock(null)
       setQuantity('')
     } catch {
-      toast.error('거래에 실패했습니다.')
+      toast.error('거래에 실패했어요.')
     }
   }
 
@@ -68,17 +69,17 @@ export function InvestmentPage() {
       <h2 className="text-xl font-bold">📈 투자</h2>
 
       {(holdings ?? []).length > 0 && (
-        <Card className="!border-primary-200">
-          <h3 className="font-semibold mb-3">내 포트폴리오</h3>
-          <div className="flex items-center justify-between mb-3">
+        <Card className="!bg-gradient-to-br !from-primary-50 !via-surface !to-accent-50/30 !border-primary-200/60">
+          <h3 className="font-bold mb-3">내 포트폴리오</h3>
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-text-secondary">총 평가액</p>
-              <p className="text-xl font-bold">{totalPortfolioValue.toLocaleString()}{currency}</p>
+              <p className="text-xs text-text-tertiary">총 평가액</p>
+              <p className="text-2xl font-extrabold">{totalPortfolioValue.toLocaleString()}{currency}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-text-secondary">총 손익</p>
-              <p className={`text-lg font-bold ${totalPnl >= 0 ? 'text-accent-600' : 'text-danger-500'}`}>
-                {totalPnl >= 0 ? '+' : ''}{totalPnl.toLocaleString()}{currency}
+              <p className="text-xs text-text-tertiary">총 손익</p>
+              <p className={`text-xl font-extrabold ${totalPnl >= 0 ? 'text-accent-600' : 'text-danger-500'}`}>
+                {totalPnl >= 0 ? '▲' : '▼'} {Math.abs(totalPnl).toLocaleString()}{currency}
               </p>
             </div>
           </div>
@@ -86,12 +87,12 @@ export function InvestmentPage() {
             {(holdings ?? []).map((h) => {
               const pnl = (h.currentPrice - h.avgPrice) * h.quantity
               return (
-                <div key={h.stockId} className="flex items-center justify-between p-2 bg-surface-tertiary rounded-lg">
+                <div key={h.stockId} className="flex items-center justify-between p-3 bg-surface rounded-2xl border border-border/40">
                   <div>
-                    <p className="text-sm font-medium">{h.stockName}</p>
+                    <p className="text-sm font-bold">{h.stockName}</p>
                     <p className="text-xs text-text-tertiary">{h.quantity}주 · 평단 {h.avgPrice}{currency}</p>
                   </div>
-                  <p className={`text-sm font-bold ${pnl >= 0 ? 'text-accent-600' : 'text-danger-500'}`}>
+                  <p className={`text-sm font-extrabold ${pnl >= 0 ? 'text-accent-600' : 'text-danger-500'}`}>
                     {pnl >= 0 ? '+' : ''}{pnl}{currency}
                   </p>
                 </div>
@@ -102,7 +103,7 @@ export function InvestmentPage() {
       )}
 
       <div>
-        <h3 className="text-sm font-semibold text-text-secondary mb-3">종목 목록</h3>
+        <h3 className="text-sm font-bold text-text-secondary mb-3">종목 목록</h3>
         <div className="space-y-3">
           {(stocks ?? []).map((stock) => {
             const change = stock.current_price - stock.previous_price
@@ -116,13 +117,20 @@ export function InvestmentPage() {
                 setTradeType('buy')
               }}>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-semibold text-sm">{stock.name}</h4>
-                    <p className="text-xs text-text-tertiary mt-0.5">{stock.description}</p>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl ${
+                      change >= 0 ? 'bg-accent-100' : 'bg-danger-100'
+                    }`}>
+                      {change >= 0 ? '📈' : '📉'}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm">{stock.name}</h4>
+                      <p className="text-xs text-text-tertiary mt-0.5">{stock.description}</p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">{stock.current_price}{currency}</p>
-                    <p className={`text-xs font-medium ${change >= 0 ? 'text-accent-600' : 'text-danger-500'}`}>
+                    <p className="font-extrabold">{stock.current_price}{currency}</p>
+                    <p className={`text-xs font-bold ${change >= 0 ? 'text-accent-600' : 'text-danger-500'}`}>
                       {change >= 0 ? '▲' : '▼'} {Math.abs(change)} ({changePercent}%)
                     </p>
                   </div>
@@ -131,7 +139,10 @@ export function InvestmentPage() {
             )
           })}
           {(stocks ?? []).length === 0 && (
-            <p className="text-center text-text-tertiary py-4">주식 종목이 없습니다.</p>
+            <div className="text-center py-8">
+              <span className="text-4xl">📊</span>
+              <p className="text-text-tertiary mt-2">주식 종목이 없어요</p>
+            </div>
           )}
         </div>
       </div>
@@ -143,9 +154,9 @@ export function InvestmentPage() {
       >
         {selectedStock && (
           <div className="space-y-4">
-            <div className="bg-surface-tertiary rounded-xl p-3 text-center">
-              <p className="text-2xl font-bold">{selectedStock.current_price}{currency}</p>
-              <p className="text-xs text-text-tertiary">{selectedStock.description}</p>
+            <div className="bg-gradient-to-br from-surface-tertiary to-surface rounded-2xl p-4 text-center">
+              <p className="text-3xl font-extrabold">{selectedStock.current_price}{currency}</p>
+              <p className="text-xs text-text-tertiary mt-1">{selectedStock.description}</p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -153,14 +164,14 @@ export function InvestmentPage() {
                 variant={tradeType === 'buy' ? 'primary' : 'ghost'}
                 onClick={() => setTradeType('buy')}
               >
-                매수
+                📥 매수
               </Button>
               <Button
                 className="flex-1"
                 variant={tradeType === 'sell' ? 'danger' : 'ghost'}
                 onClick={() => setTradeType('sell')}
               >
-                매도
+                📤 매도
               </Button>
             </div>
             <Input
@@ -171,10 +182,14 @@ export function InvestmentPage() {
               onChange={(e) => setQuantity(e.target.value)}
             />
             {quantity && Number(quantity) > 0 && (
-              <p className="text-sm text-text-secondary">
-                총 {tradeType === 'buy' ? '매수' : '매도'} 금액:{' '}
-                <span className="font-bold">{(selectedStock.current_price * Number(quantity)).toLocaleString()}{currency}</span>
-              </p>
+              <div className="bg-surface-tertiary rounded-2xl p-3 text-center">
+                <p className="text-sm text-text-secondary">
+                  총 {tradeType === 'buy' ? '매수' : '매도'} 금액
+                </p>
+                <p className="text-xl font-extrabold text-primary-600">
+                  {(selectedStock.current_price * Number(quantity)).toLocaleString()}{currency}
+                </p>
+              </div>
             )}
             <Button
               className="w-full"

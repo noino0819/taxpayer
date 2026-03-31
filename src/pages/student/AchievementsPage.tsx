@@ -30,6 +30,15 @@ const achievements: AchievementDef[] = [
   { id: '8', emoji: '🎯', name: '알뜰 저축러', description: '적금 3개 이상 가입!', condition: '적금 3개', check: (c) => c.savingsCount >= 3 },
 ]
 
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+}
+const item = {
+  hidden: { opacity: 0, scale: 0.9 },
+  show: { opacity: 1, scale: 1 },
+}
+
 export function AchievementsPage() {
   const { data: account } = useMyAccount()
   const { data: transactions } = useMyTransactions(50)
@@ -52,39 +61,40 @@ export function AchievementsPage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">🏆 성취 배지</h2>
-        <span className="text-sm text-text-secondary">{earned.length}/{achievements.length}</span>
+        <div className="bg-primary-100 rounded-2xl px-3 py-1.5">
+          <span className="text-xs text-primary-600 font-bold">{earned.length}/{achievements.length} 달성</span>
+        </div>
       </div>
 
       {earned.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-text-secondary mb-3">획득한 배지</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <h3 className="text-sm font-bold text-text-secondary mb-3">획득한 배지</h3>
+          <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-2 gap-3">
             {earned.map((badge) => (
-              <motion.div
-                key={badge.id}
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                whileHover={{ scale: 1.03 }}
-              >
-                <Card padding="sm" className="text-center h-full">
-                  <span className="text-4xl">{badge.emoji}</span>
-                  <h4 className="font-bold text-sm mt-2">{badge.name}</h4>
-                  <p className="text-xs text-text-tertiary mt-1">{badge.description}</p>
+              <motion.div key={badge.id} variants={item}>
+                <Card padding="sm" className="text-center h-full !bg-gradient-to-br !from-primary-50/50 !to-accent-50/30 !border-primary-200/40">
+                  <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-3xl mx-auto">
+                    {badge.emoji}
+                  </div>
+                  <h4 className="font-bold text-sm mt-2.5">{badge.name}</h4>
+                  <p className="text-xs text-text-tertiary mt-1 leading-relaxed">{badge.description}</p>
                 </Card>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       )}
 
       <div>
-        <h3 className="text-sm font-semibold text-text-secondary mb-3">도전 중인 배지</h3>
+        <h3 className="text-sm font-bold text-text-secondary mb-3">도전 중인 배지</h3>
         <div className="grid grid-cols-2 gap-3">
           {notEarned.map((badge) => (
-            <Card key={badge.id} padding="sm" className="text-center opacity-60 h-full">
-              <span className="text-4xl grayscale">{badge.emoji}</span>
-              <h4 className="font-bold text-sm mt-2">{badge.name}</h4>
-              <p className="text-xs text-text-tertiary mt-1">{badge.condition}</p>
+            <Card key={badge.id} padding="sm" className="text-center opacity-50 h-full">
+              <div className="w-14 h-14 rounded-2xl bg-surface-tertiary flex items-center justify-center text-3xl mx-auto grayscale">
+                {badge.emoji}
+              </div>
+              <h4 className="font-bold text-sm mt-2.5">{badge.name}</h4>
+              <p className="text-xs text-text-tertiary mt-1">🔒 {badge.condition}</p>
             </Card>
           ))}
         </div>

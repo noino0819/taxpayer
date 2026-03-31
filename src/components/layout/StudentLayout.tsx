@@ -1,6 +1,8 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useAuthStore } from '@/stores/authStore'
 import { useModuleStore } from '@/stores/moduleStore'
+import { useMyAccount } from '@/hooks/useQueries'
 import {
   HiOutlineHome,
   HiOutlineBanknotes,
@@ -10,9 +12,10 @@ import {
 } from 'react-icons/hi2'
 
 export function StudentLayout() {
-  const { user, currentClassroom, logout } = useAuthStore()
+  const { user, currentClassroom } = useAuthStore()
   const { isEnabled } = useModuleStore()
-  const navigate = useNavigate()
+  const { data: account } = useMyAccount()
+  const currency = currentClassroom?.currency_name || '미소'
 
   const tabs = [
     { to: '/student', icon: HiOutlineHome, label: '홈', show: true, end: true },
@@ -22,39 +25,36 @@ export function StudentLayout() {
     { to: '/student/more', icon: HiOutlineEllipsisHorizontal, label: '더보기', show: true },
   ].filter((tab) => tab.show)
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-surface-secondary">
-      {/* Header */}
-      <header className="bg-surface border-b border-border px-4 py-3 flex items-center justify-between sticky top-0 z-40 pwa-header">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{user?.avatar_preset_id || '😊'}</span>
-          <div>
-            <h2 className="text-base font-bold">{user?.name}</h2>
-            <p className="text-[11px] text-text-tertiary leading-none mt-0.5">
-              {currentClassroom?.school} {currentClassroom?.grade}학년 {currentClassroom?.class_num}반
+      <header className="bg-gradient-to-r from-primary-600 via-primary-500 to-primary-600 px-4 py-4 sticky top-0 z-40 pwa-header">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-sm">
+              {user?.avatar_preset_id || '😊'}
+            </div>
+            <div className="text-white">
+              <h2 className="text-base font-bold leading-tight">{user?.name}</h2>
+              <p className="text-[11px] text-primary-200 leading-none mt-0.5">
+                {currentClassroom?.school} {currentClassroom?.grade}학년 {currentClassroom?.class_num}반
+              </p>
+            </div>
+          </div>
+          <div className="bg-white/15 backdrop-blur-sm rounded-2xl px-4 py-2 text-right">
+            <p className="text-[10px] text-primary-200 leading-none">내 잔액</p>
+            <p className="text-lg font-extrabold text-white leading-tight mt-0.5">
+              {(account?.balance ?? 0).toLocaleString()}
+              <span className="text-xs font-medium text-primary-200 ml-0.5">{currency}</span>
             </p>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="text-xs text-text-tertiary hover:text-text-secondary active:text-text-primary px-3 py-2 rounded-lg transition-colors"
-        >
-          로그아웃
-        </button>
       </header>
 
-      {/* Scrollable Content */}
-      <main className="flex-1 pb-20 px-4 py-4 max-w-lg mx-auto w-full">
+      <main className="flex-1 pb-20 px-4 py-5 max-w-lg mx-auto w-full">
         <Outlet />
       </main>
 
-      {/* Bottom Tab Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-40 pwa-bottom-nav">
+      <nav className="fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-t border-border/50 z-40 pwa-bottom-nav">
         <div className="flex items-stretch justify-around max-w-lg mx-auto">
           {tabs.map((tab) => (
             <NavLink
@@ -62,13 +62,27 @@ export function StudentLayout() {
               to={tab.to}
               end={tab.end}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-0.5 py-2.5 px-1 min-w-[56px] flex-1 transition-colors active:bg-surface-tertiary ${
+                `flex flex-col items-center justify-center gap-1 py-2.5 px-1 min-w-[56px] flex-1 transition-all active:scale-95 ${
                   isActive ? 'text-primary-600' : 'text-text-tertiary'
                 }`
               }
             >
-              <tab.icon className="w-6 h-6" />
-              <span className="text-[10px] font-medium leading-none">{tab.label}</span>
+              {({ isActive }) => (
+                <>
+                  <div className="relative">
+                    <tab.icon className="w-6 h-6" />
+                    {isActive && (
+                      <motion.div
+                        layoutId="tab-indicator"
+                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500"
+                      />
+                    )}
+                  </div>
+                  <span className={`text-[10px] font-semibold leading-none ${isActive ? 'text-primary-600' : ''}`}>
+                    {tab.label}
+                  </span>
+                </>
+              )}
             </NavLink>
           ))}
         </div>

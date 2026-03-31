@@ -19,33 +19,33 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
             onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`relative bg-surface rounded-2xl shadow-xl w-full ${sizeClasses[size]} max-h-[85vh] overflow-y-auto`}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+            className={`relative bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
           >
             {title && (
-              <div className="flex items-center justify-between p-5 border-b border-border">
+              <div className="flex items-center justify-between px-6 pt-6 pb-4">
                 <h2 className="text-xl font-bold">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg hover:bg-surface-tertiary transition-colors text-text-secondary"
+                  className="p-2 rounded-xl hover:bg-surface-tertiary transition-colors text-text-secondary"
                 >
                   <HiXMark className="w-5 h-5" />
                 </button>
               </div>
             )}
-            <div className="p-5">{children}</div>
+            <div className="px-6 pb-6">{children}</div>
           </motion.div>
         </div>
       )}

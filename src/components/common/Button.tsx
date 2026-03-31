@@ -12,17 +12,17 @@ interface ButtonProps extends React.ComponentPropsWithoutRef<'button'> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary: 'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700',
-  secondary: 'bg-surface-tertiary text-text-primary hover:bg-border active:bg-border-light border border-border',
-  accent: 'bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-700',
-  danger: 'bg-danger-500 text-white hover:bg-danger-600 active:bg-danger-700',
+  primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 active:from-primary-700 active:to-primary-800 shadow-[0_2px_8px_rgba(99,102,241,0.3)]',
+  secondary: 'bg-surface text-text-primary hover:bg-surface-tertiary active:bg-border border border-border/80',
+  accent: 'bg-gradient-to-r from-accent-500 to-accent-600 text-white hover:from-accent-600 hover:to-accent-700 active:from-accent-700 active:to-accent-800 shadow-[0_2px_8px_rgba(16,185,129,0.3)]',
+  danger: 'bg-gradient-to-r from-danger-500 to-danger-600 text-white hover:from-danger-600 hover:to-danger-700 shadow-[0_2px_8px_rgba(244,63,94,0.3)]',
   ghost: 'bg-transparent text-text-secondary hover:bg-surface-tertiary active:bg-border-light',
 }
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'px-3 py-1.5 text-sm rounded-lg gap-1.5',
-  md: 'px-4 py-2.5 text-base rounded-xl gap-2',
-  lg: 'px-6 py-3.5 text-lg rounded-xl gap-2.5',
+  sm: 'px-3.5 py-1.5 text-sm rounded-xl gap-1.5',
+  md: 'px-5 py-2.5 text-base rounded-2xl gap-2',
+  lg: 'px-7 py-3.5 text-lg rounded-2xl gap-2.5',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -30,11 +30,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <motion.button
         ref={ref}
-        whileTap={{ scale: 0.97 }}
+        whileTap={{ scale: 0.96 }}
         className={`
-          inline-flex items-center justify-center font-semibold
-          transition-colors duration-200 cursor-pointer
-          disabled:opacity-50 disabled:cursor-not-allowed
+          inline-flex items-center justify-center font-bold
+          transition-all duration-200 cursor-pointer
+          disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none
           ${variantClasses[variant]}
           ${sizeClasses[size]}
           ${className}

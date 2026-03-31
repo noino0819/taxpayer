@@ -87,7 +87,7 @@ export function QuizPage() {
     } else {
       setQuizFinished(true)
       if (score + (selectedAnswer === quiz.correctIndex ? 1 : 0) === weeklyQuizzes.length) {
-        toast.success(`만점! 보너스 2${currency}가 지급되었습니다!`)
+        toast.success(`만점! 보너스 2${currency}가 지급되었어요! 🎉`)
       }
     }
   }
@@ -96,11 +96,13 @@ export function QuizPage() {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
         <h2 className="text-xl font-bold">📝 경제 퀴즈</h2>
-        <Card className="text-center py-8">
-          <span className="text-6xl">🧠</span>
-          <h3 className="text-xl font-bold mt-4">이번 주 경제 퀴즈</h3>
-          <p className="text-text-secondary mt-2">총 {weeklyQuizzes.length}문제</p>
-          <p className="text-sm text-accent-600 mt-1">
+        <Card className="text-center py-10 !bg-gradient-to-br !from-primary-50 !via-surface !to-accent-50/30">
+          <div className="w-20 h-20 rounded-3xl bg-white shadow-sm flex items-center justify-center text-5xl mx-auto">
+            🧠
+          </div>
+          <h3 className="text-xl font-extrabold mt-5">이번 주 경제 퀴즈</h3>
+          <p className="text-text-secondary mt-2 font-medium">총 {weeklyQuizzes.length}문제</p>
+          <p className="text-sm text-accent-600 font-bold mt-1">
             만점 달성 시 보너스 2{currency} 지급!
           </p>
           <Button className="mt-6" size="lg" onClick={() => setQuizStarted(true)}>
@@ -109,12 +111,12 @@ export function QuizPage() {
         </Card>
 
         <Card>
-          <h3 className="font-semibold mb-3">경제 용어 사전</h3>
+          <h3 className="font-bold mb-4">경제 용어 사전</h3>
           <div className="space-y-3">
             {weeklyQuizzes.map((q) => (
-              <div key={q.id} className="p-3 rounded-xl bg-surface-tertiary">
-                <h4 className="font-semibold text-sm text-primary-600">{q.term}</h4>
-                <p className="text-xs text-text-secondary mt-1">{q.explanation}</p>
+              <div key={q.id} className="p-3.5 rounded-2xl bg-surface-tertiary/70">
+                <h4 className="font-bold text-sm text-primary-600">{q.term}</h4>
+                <p className="text-xs text-text-secondary mt-1 leading-relaxed">{q.explanation}</p>
               </div>
             ))}
           </div>
@@ -128,16 +130,20 @@ export function QuizPage() {
     const isPerfect = finalScore === weeklyQuizzes.length
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-        <Card className="text-center py-8">
-          <span className="text-6xl">{isPerfect ? '🎉' : '👏'}</span>
-          <h3 className="text-2xl font-bold mt-4">
+        <Card className="text-center py-10 !bg-gradient-to-br !from-primary-50 !via-surface !to-accent-50/30">
+          <div className="w-20 h-20 rounded-3xl bg-white shadow-sm flex items-center justify-center text-5xl mx-auto">
+            {isPerfect ? '🎉' : '👏'}
+          </div>
+          <h3 className="text-2xl font-extrabold mt-5">
             {isPerfect ? '만점!' : '수고했어요!'}
           </h3>
-          <p className="text-3xl font-bold text-primary-600 mt-3">
+          <p className="text-4xl font-extrabold text-primary-600 mt-4">
             {finalScore} / {weeklyQuizzes.length}
           </p>
           {isPerfect && (
-            <Badge variant="accent" size="md">보너스 2{currency} 지급!</Badge>
+            <div className="mt-3">
+              <Badge variant="accent" size="md">보너스 2{currency} 지급!</Badge>
+            </div>
           )}
           <Button
             className="mt-6"
@@ -162,16 +168,17 @@ export function QuizPage() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">📝 경제 퀴즈</h2>
-        <Badge variant="primary">
+        <Badge variant="primary" size="md">
           {currentQuiz + 1} / {weeklyQuizzes.length}
         </Badge>
       </div>
 
-      <div className="h-1.5 bg-surface-tertiary rounded-full overflow-hidden">
+      <div className="h-2 bg-surface-tertiary rounded-full overflow-hidden">
         <motion.div
-          className="h-full bg-primary-500 rounded-full"
+          className="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${((currentQuiz + 1) / weeklyQuizzes.length) * 100}%` }}
+          transition={{ duration: 0.4 }}
         />
       </div>
 
@@ -183,35 +190,38 @@ export function QuizPage() {
           exit={{ opacity: 0, x: -50 }}
         >
           <Card>
-            <h3 className="text-lg font-bold mb-4">{quiz.question}</h3>
-            <div className="space-y-2.5">
+            <h3 className="text-lg font-extrabold mb-5 leading-relaxed">{quiz.question}</h3>
+            <div className="space-y-3">
               {quiz.options.map((option, idx) => {
-                let optionClass = 'border-border hover:bg-surface-tertiary'
+                let optionClass = 'border-border/60 hover:bg-surface-tertiary hover:border-primary-300'
                 if (showResult) {
                   if (idx === quiz.correctIndex) {
-                    optionClass = 'border-accent-400 bg-accent-50'
+                    optionClass = 'border-accent-400 bg-accent-50 ring-2 ring-accent-200'
                   } else if (idx === selectedAnswer) {
-                    optionClass = 'border-danger-400 bg-danger-50'
+                    optionClass = 'border-danger-400 bg-danger-50 ring-2 ring-danger-200'
+                  } else {
+                    optionClass = 'border-border/40 opacity-50'
                   }
                 } else if (idx === selectedAnswer) {
-                  optionClass = 'border-primary-400 bg-primary-50'
+                  optionClass = 'border-primary-400 bg-primary-50 ring-2 ring-primary-200'
                 }
 
                 return (
-                  <button
+                  <motion.button
                     key={idx}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleAnswer(idx)}
-                    className={`w-full p-3 rounded-xl border text-left text-sm font-medium transition-all ${optionClass}`}
+                    className={`w-full p-4 rounded-2xl border-2 text-left text-sm font-bold transition-all ${optionClass}`}
                   >
-                    <span className="inline-flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-surface-tertiary flex items-center justify-center text-xs font-bold">
+                    <span className="inline-flex items-center gap-3">
+                      <span className="w-7 h-7 rounded-xl bg-surface-tertiary flex items-center justify-center text-xs font-extrabold flex-shrink-0">
                         {idx + 1}
                       </span>
-                      {option}
-                      {showResult && idx === quiz.correctIndex && <span>✅</span>}
-                      {showResult && idx === selectedAnswer && idx !== quiz.correctIndex && <span>❌</span>}
+                      <span className="flex-1">{option}</span>
+                      {showResult && idx === quiz.correctIndex && <span className="text-lg">✅</span>}
+                      {showResult && idx === selectedAnswer && idx !== quiz.correctIndex && <span className="text-lg">❌</span>}
                     </span>
-                  </button>
+                  </motion.button>
                 )
               })}
             </div>
@@ -220,12 +230,12 @@ export function QuizPage() {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="mt-4 p-3 rounded-xl bg-primary-50 border border-primary-200"
+                className="mt-5 p-4 rounded-2xl bg-primary-50 border border-primary-200/60"
               >
-                <p className="text-sm font-semibold text-primary-700 mb-1">
+                <p className="text-sm font-extrabold text-primary-700 mb-1.5">
                   💡 {quiz.term}
                 </p>
-                <p className="text-xs text-primary-600">{quiz.explanation}</p>
+                <p className="text-sm text-primary-600 leading-relaxed">{quiz.explanation}</p>
               </motion.div>
             )}
           </Card>
@@ -234,7 +244,7 @@ export function QuizPage() {
 
       {showResult && (
         <Button className="w-full" size="lg" onClick={handleNext}>
-          {currentQuiz < weeklyQuizzes.length - 1 ? '다음 문제' : '결과 보기'}
+          {currentQuiz < weeklyQuizzes.length - 1 ? '다음 문제 →' : '결과 보기 🎉'}
         </Button>
       )}
     </motion.div>

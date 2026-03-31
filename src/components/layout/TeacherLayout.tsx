@@ -42,50 +42,56 @@ export function TeacherLayout() {
 
   return (
     <div className="min-h-screen flex bg-surface-secondary">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 bg-surface border-r border-border flex-col fixed h-full">
-        <div className="p-5 border-b border-border">
-          <h1 className="text-xl font-bold text-primary-600">🏫 세금내는 아이들</h1>
-          {currentClassroom && (
-            <p className="text-sm text-text-secondary mt-1">
-              {currentClassroom.school} {currentClassroom.grade}학년 {currentClassroom.class_num}반
-            </p>
-          )}
+      <aside className="hidden lg:flex w-[260px] bg-surface border-r border-border/50 flex-col fixed h-full">
+        <div className="p-5 border-b border-border/50">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-sm font-extrabold shadow-[0_2px_8px_rgba(99,102,241,0.3)]">
+              TP
+            </div>
+            <div>
+              <h1 className="text-base font-extrabold text-primary-600">TaxPayer</h1>
+              {currentClassroom && (
+                <p className="text-[11px] text-text-tertiary leading-none mt-0.5">
+                  {currentClassroom.school} {currentClassroom.grade}-{currentClassroom.class_num}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+          {navItems.map((navItem) => (
             <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
+              key={navItem.to}
+              to={navItem.to}
+              end={navItem.end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                   isActive
-                    ? 'bg-primary-50 text-primary-600'
+                    ? 'bg-primary-50 text-primary-600 shadow-[0_1px_4px_rgba(99,102,241,0.08)]'
                     : 'text-text-secondary hover:bg-surface-tertiary hover:text-text-primary'
                 }`
               }
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {item.label}
+              <navItem.icon className="w-5 h-5 flex-shrink-0" />
+              {navItem.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border/50">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center text-lg">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center text-lg">
               👨‍🏫
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.name}</p>
+              <p className="text-sm font-bold truncate">{user?.name}</p>
               <p className="text-xs text-text-tertiary">교사</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-tertiary transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm text-text-secondary hover:bg-surface-tertiary transition-colors font-medium"
           >
             <HiOutlineArrowRightOnRectangle className="w-4 h-4" />
             로그아웃
@@ -93,8 +99,7 @@ export function TeacherLayout() {
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 bg-surface border-b border-border z-50 pwa-header">
+      <header className="lg:hidden fixed top-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-b border-border/50 z-50 pwa-header">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <button
@@ -103,30 +108,32 @@ export function TeacherLayout() {
             >
               <HiBars3 className="w-6 h-6" />
             </button>
-            <div>
-              <h1 className="text-base font-bold text-primary-600">🏫 세금내는 아이들</h1>
-              {currentClassroom && (
-                <p className="text-[11px] text-text-tertiary">
-                  {currentClassroom.school} {currentClassroom.grade}학년 {currentClassroom.class_num}반
-                </p>
-              )}
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-[10px] font-extrabold">
+                TP
+              </div>
+              <div>
+                <h1 className="text-sm font-extrabold text-primary-600">TaxPayer</h1>
+                {currentClassroom && (
+                  <p className="text-[10px] text-text-tertiary leading-none">
+                    {currentClassroom.school} {currentClassroom.grade}-{currentClassroom.class_num}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <NavLink
-              to="/teacher/notifications"
-              className="p-2 rounded-xl hover:bg-surface-tertiary relative"
-            >
-              <HiOutlineBellAlert className="w-5 h-5 text-text-secondary" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-danger-500" />
-              )}
-            </NavLink>
-          </div>
+          <NavLink
+            to="/teacher/notifications"
+            className="p-2 rounded-xl hover:bg-surface-tertiary relative"
+          >
+            <HiOutlineBellAlert className="w-5 h-5 text-text-secondary" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-danger-500" />
+            )}
+          </NavLink>
         </div>
       </header>
 
-      {/* Mobile Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
@@ -134,7 +141,7 @@ export function TeacherLayout() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="lg:hidden fixed inset-0 bg-black/40 z-50"
+              className="lg:hidden fixed inset-0 bg-black/30 backdrop-blur-[2px] z-50"
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.aside
@@ -142,10 +149,15 @@ export function TeacherLayout() {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="lg:hidden fixed top-0 left-0 bottom-0 w-72 bg-surface z-50 flex flex-col shadow-xl safe-top"
+              className="lg:hidden fixed top-0 left-0 bottom-0 w-72 bg-surface z-50 flex flex-col shadow-2xl safe-top"
             >
-              <div className="flex items-center justify-between p-4 border-b border-border">
-                <h1 className="text-lg font-bold text-primary-600">🏫 세금내는 아이들</h1>
+              <div className="flex items-center justify-between p-4 border-b border-border/50">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-xs font-extrabold">
+                    TP
+                  </div>
+                  <h1 className="text-base font-extrabold text-primary-600">TaxPayer</h1>
+                </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
                   className="p-2 rounded-xl hover:bg-surface-tertiary"
@@ -154,40 +166,40 @@ export function TeacherLayout() {
                 </button>
               </div>
 
-              <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-                {navItems.map((item) => (
+              <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+                {navItems.map((navItem) => (
                   <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
+                    key={navItem.to}
+                    to={navItem.to}
+                    end={navItem.end}
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                      `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                         isActive
                           ? 'bg-primary-50 text-primary-600'
                           : 'text-text-secondary hover:bg-surface-tertiary active:bg-border-light'
                       }`
                     }
                   >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
-                    {item.label}
+                    <navItem.icon className="w-5 h-5 flex-shrink-0" />
+                    {navItem.label}
                   </NavLink>
                 ))}
               </nav>
 
-              <div className="p-4 border-t border-border safe-bottom">
+              <div className="p-4 border-t border-border/50 safe-bottom">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-xl">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center text-xl">
                     👨‍🏫
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{user?.name}</p>
+                    <p className="text-sm font-bold truncate">{user?.name}</p>
                     <p className="text-xs text-text-tertiary">교사</p>
                   </div>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-tertiary active:bg-border-light transition-colors"
+                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-tertiary active:bg-border-light transition-colors font-medium"
                 >
                   <HiOutlineArrowRightOnRectangle className="w-4 h-4" />
                   로그아웃
@@ -198,9 +210,8 @@ export function TeacherLayout() {
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-64 pt-14 lg:pt-0 min-h-screen">
-        <div className="p-4 lg:p-6">
+      <main className="flex-1 lg:ml-[260px] pt-14 lg:pt-0 min-h-screen">
+        <div className="p-4 lg:p-8 max-w-7xl">
           <Outlet />
         </div>
       </main>
