@@ -1,73 +1,103 @@
-# React + TypeScript + Vite
+# 🏫 TaxPayer - 학급 화폐 경제 교육 플랫폼
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+초등학교 교실에서 학급 화폐를 활용한 경제 교육을 디지털 플랫폼으로 구현한 웹 애플리케이션입니다.
 
-Currently, two official plugins are available:
+## 주요 기능
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 교사 기능
+- **대시보드**: 학급 경제 현황 한눈에 파악 (총 통화량, 평균 잔액, 양극화 지수)
+- **학생 관리**: 학생 명부, 개별 경제 활동 현황, 초대 코드 관리
+- **직업 관리**: 필수/선택/창직 직업 생성 및 배정, 월급 설정
+- **통장 관리**: 일괄 입출금, 학생별 잔액 현황
+- **세금/벌금**: 세율 설정, 벌금 승인/거절 워크플로우
+- **경제 현황**: 물가지수, 기준금리, 학급 코스피, 경제 이벤트
+- **학급 설정**: 모듈 ON/OFF, 운영 모드(자동/반자동/수동), 프리셋
 
-## React Compiler
+### 학생 기능
+- **통장**: 입출금 내역, 카테고리 분류, 월별 요약
+- **직업**: 직업 목록 조회 및 지원
+- **마트**: 상품 구매, 카테고리 필터
+- **은행**: 저축 상품 가입, 단리/복리 이자 계산기
+- **투자**: 모의 주식 투자, 가격 그래프, 매수/매도
+- **부동산**: 교실 좌석 배치도, 자리 매매/임대
+- **보험**: 보험 상품 가입, 약관 확인
+- **신용등급**: 신용 점수 시각화, 등급별 혜택
+- **성취 배지**: 경제 활동 성취 배지 수집
+- **경제 퀴즈**: 주간 경제 용어 퀴즈
+- **학급 게시판**: 공지, 신용변동, 직업공고, 마트소식, 경제뉴스
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 기술 스택
 
-## Expanding the ESLint configuration
+### 프론트엔드
+- **React 18+** + **TypeScript**
+- **Vite** - 빌드 도구
+- **Tailwind CSS v4** - 스타일링
+- **React Router v6** - 라우팅
+- **TanStack Query** - 서버 상태 관리
+- **Zustand** - 클라이언트 상태 관리
+- **Recharts** - 차트/그래프
+- **Framer Motion** - 애니메이션
+- **react-hot-toast** - 알림
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 백엔드 (준비)
+- **Supabase** - 인증, DB, 실시간 구독, 스토리지
+- **PostgreSQL** - 관계형 데이터베이스
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 시작하기
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 사전 요구사항
+- Node.js 18+
+- npm 또는 yarn
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 설치
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 환경 변수 설정
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env.example .env
+# .env 파일에 Supabase URL과 Anon Key를 입력하세요
 ```
+
+### 개발 서버 실행
+
+```bash
+npm run dev
+```
+
+### 빌드
+
+```bash
+npm run build
+```
+
+## 프로젝트 구조
+
+```
+src/
+├── components/
+│   ├── common/          # 공통 UI 컴포넌트 (Button, Card, Input, Badge, Modal)
+│   └── layout/          # 레이아웃 (TeacherLayout, StudentLayout)
+├── hooks/               # 커스텀 훅
+├── lib/                 # 유틸리티 (Supabase 클라이언트, 상수)
+├── pages/
+│   ├── auth/            # 인증 (로그인, 회원가입)
+│   ├── teacher/         # 교사 페이지
+│   └── student/         # 학생 페이지
+├── stores/              # Zustand 상태 관리
+├── types/               # TypeScript 타입 정의
+└── App.tsx              # 라우터 및 앱 설정
+```
+
+## 데이터베이스
+
+Supabase 마이그레이션 파일은 `supabase/migrations/` 디렉토리에 있습니다.
+
+## 데모 모드
+
+현재 Supabase 연결 없이도 데모 데이터로 앱을 체험할 수 있습니다.
+- **교사 로그인**: 아무 이메일/비밀번호로 로그인
+- **학생 로그인**: 이름, 초대코드, PIN 입력
