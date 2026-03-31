@@ -36,6 +36,7 @@ export function StudentsPage() {
       return {
         id: m.user_id,
         name: m.user?.name ?? '',
+        loginId: m.user?.login_id ?? '',
         avatar: m.user?.avatar_preset_id ?? '😊',
         balance: acc?.balance ?? 0,
         creditGrade: acc?.credit_grade ?? 3,
@@ -43,9 +44,10 @@ export function StudentsPage() {
       }
     })
 
-  const filtered = students.filter((s) =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const filtered = students.filter((s) => {
+    const q = searchQuery.toLowerCase()
+    return s.name.toLowerCase().includes(q) || s.loginId.toLowerCase().includes(q)
+  })
 
   const handleDeposit = async () => {
     if (!selectedStudent?.accountId || !actionAmount) return
@@ -164,7 +166,7 @@ export function StudentsPage() {
       </AnimatePresence>
 
       <Input
-        placeholder="학생 이름 검색..."
+        placeholder="학생 이름 또는 아이디 검색..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         icon={<HiOutlineMagnifyingGlass className="w-5 h-5" />}
@@ -186,6 +188,9 @@ export function StudentsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h4 className="font-bold">{student.name}</h4>
+                    {student.loginId && (
+                      <span className="text-xs text-text-tertiary">@{student.loginId}</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-sm text-text-secondary font-bold">
@@ -220,6 +225,9 @@ export function StudentsPage() {
             <div className="text-center">
               <span className="text-5xl">{selectedStudent.avatar}</span>
               <h3 className="text-xl font-bold mt-2">{selectedStudent.name}</h3>
+              {selectedStudent.loginId && (
+                <p className="text-sm text-text-tertiary">@{selectedStudent.loginId}</p>
+              )}
             </div>
             <div className="bg-surface-tertiary rounded-2xl p-4 space-y-3 border border-border/50">
               <div className="flex justify-between">
