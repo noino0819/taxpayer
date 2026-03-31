@@ -323,6 +323,32 @@ export interface AccountDeletionLog {
   retention_until: string
 }
 
+export type SatisfactionInputMode = 'student' | 'teacher' | 'both'
+
+export interface SatisfactionSurvey {
+  id: string
+  classroom_id: string
+  title: string
+  description: string
+  factor_type: string
+  input_mode: SatisfactionInputMode
+  auto_apply: boolean
+  status: 'open' | 'closed'
+  teacher_rating: number | null
+  avg_rating: number | null
+  applied_event_id: string | null
+  created_at: string
+  closed_at: string | null
+}
+
+export interface SatisfactionResponse {
+  id: string
+  survey_id: string
+  user_id: string
+  rating: number
+  created_at: string
+}
+
 export type ModuleName =
   | 'job'
   | 'mart'

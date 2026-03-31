@@ -14,9 +14,12 @@ import {
   useSellStock,
   useStockPriceHistory,
   useEconomyEvents,
+  useActiveSurveys,
+  useMyResponses,
+  useSubmitResponse,
 } from '@/hooks/useQueries'
 import { STOCK_FACTOR_LABELS } from '@/lib/constants'
-import type { Stock } from '@/types/database'
+import type { Stock, SatisfactionSurvey, SatisfactionResponse } from '@/types/database'
 import toast from 'react-hot-toast'
 
 export function InvestmentPage() {
@@ -118,6 +121,8 @@ export function InvestmentPage() {
           </div>
         </Card>
       )}
+
+      {user && <ActiveSurveySection userId={user.id} />}
 
       {(holdings ?? []).length > 0 && (
         <Card className="!bg-gradient-to-br !from-primary-50 !via-surface !to-accent-50/30 !border-primary-200/60">
@@ -284,6 +289,105 @@ export function InvestmentPage() {
         {chartStock && <PriceChart stockId={chartStock.id} currency={currency} currentPrice={chartStock.current_price} />}
       </Modal>
     </motion.div>
+  )
+}
+
+function ActiveSurveySection({ userId }: { userId: string }) {
+  const { data: surveys } = useActiveSurveys()
+  const studentSurveys = (surveys ?? []).filter(
+    (s) => s.input_mode === 'student' || s.input_mode === 'both',
+  )
+  const surveyIds = studentSurveys.map((s) => s.id)
+  const { data: myResponses } = useMyResponses(surveyIds)
+
+  if (studentSurveys.length === 0) return null
+
+  const responseMap = new Map((myResponses ?? []).map((r) => [r.survey_id, r]))
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-bold text-text-secondary">만족도 조사</h3>
+      {studentSurveys.map((survey) => (
+        <SurveyVoteCard
+          key={survey.id}
+          survey={survey}
+          userId={userId}
+          myResponse={responseMap.get(survey.id) ?? null}
+        />
+      ))}
+    </div>
+  )
+}
+
+function SurveyVoteCard({ survey, userId, myResponse }: {
+  survey: SatisfactionSurvey
+  userId: string
+  myResponse: SatisfactionResponse | null
+}) {
+  const submitMutation = useSubmitResponse()
+  const [hoveredStar, setHoveredStar] = useState(0)
+  const currentRating = myResponse?.rating ?? 0
+  const factorLabel = STOCK_FACTOR_LABELS[survey.factor_type] || survey.factor_type
+
+  const handleRate = async (rating: number) => {
+    try {
+      await submitMutation.mutateAsync({ surveyId: survey.id, userId, rating })
+      toast.success('투표 완료!')
+    } catch {
+      toast.error('투표에 실패했어요.')
+    }
+  }
+
+  return (
+    <Card className="!bg-gradient-to-br !from-warning-50/30 !via-surface !to-accent-50/20 !border-warning-200/40">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <p className="font-bold text-sm">{survey.title}</p>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-tertiary text-text-tertiary">
+              {factorLabel}
+            </span>
+          </div>
+          {survey.description && (
+            <p className="text-xs text-text-tertiary mt-0.5">{survey.description}</p>
+          )}
+        </div>
+        {currentRating > 0 && (
+          <Badge variant="accent" size="sm">투표 완료</Badge>
+        )}
+      </div>
+
+      <div className="flex items-center justify-center gap-1 py-2">
+        {[1, 2, 3, 4, 5].map((star) => {
+          const isActive = star <= (hoveredStar || currentRating)
+          return (
+            <button
+              key={star}
+              onClick={() => handleRate(star)}
+              onMouseEnter={() => setHoveredStar(star)}
+              onMouseLeave={() => setHoveredStar(0)}
+              disabled={submitMutation.isPending}
+              className={`text-3xl transition-all duration-150 ${
+                isActive ? 'scale-110 opacity-100' : 'opacity-25 hover:opacity-50'
+              } ${submitMutation.isPending ? 'pointer-events-none' : ''}`}
+            >
+              ⭐
+            </button>
+          )
+        })}
+      </div>
+
+      {currentRating > 0 && (
+        <p className="text-center text-xs text-text-tertiary">
+          내 점수: {currentRating}점 (다시 눌러서 변경할 수 있어요)
+        </p>
+      )}
+      {currentRating === 0 && (
+        <p className="text-center text-xs text-text-tertiary">
+          별을 눌러서 점수를 매겨보세요!
+        </p>
+      )}
+    </Card>
   )
 }
 

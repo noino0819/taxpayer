@@ -735,3 +735,117 @@ export function usePurchaseSeat() {
     },
   })
 }
+
+// ═══════════════════════════════════════════
+// Satisfaction Surveys
+// ═══════════════════════════════════════════
+
+export function useSurveys() {
+  const classroomId = useClassroomId()
+  return useQuery({
+    queryKey: ['surveys', classroomId],
+    queryFn: () => api.getSurveys(classroomId!),
+    enabled: !!classroomId,
+  })
+}
+
+export function useActiveSurveys() {
+  const classroomId = useClassroomId()
+  return useQuery({
+    queryKey: ['active-surveys', classroomId],
+    queryFn: () => api.getActiveSurveys(classroomId!),
+    enabled: !!classroomId,
+  })
+}
+
+export function useCreateSurvey() {
+  const qc = useQueryClient()
+  const classroomId = useClassroomId()
+  return useMutation({
+    mutationFn: (params: { title: string; description: string; factor_type: string; input_mode: import('@/types/database').SatisfactionInputMode; auto_apply: boolean }) =>
+      api.createSurvey(classroomId!, params),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['surveys'] })
+      qc.invalidateQueries({ queryKey: ['active-surveys'] })
+    },
+  })
+}
+
+export function useSubmitResponse() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { surveyId: string; userId: string; rating: number }) =>
+      api.submitResponse(params.surveyId, params.userId, params.rating),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['survey-results'] })
+      qc.invalidateQueries({ queryKey: ['my-responses'] })
+    },
+  })
+}
+
+export function useMyResponses(surveyIds: string[]) {
+  const userId = useUserId()
+  return useQuery({
+    queryKey: ['my-responses', userId, surveyIds],
+    queryFn: () => api.getMyResponses(surveyIds, userId!),
+    enabled: !!userId && surveyIds.length > 0,
+  })
+}
+
+export function useSurveyResults(surveyId: string | undefined) {
+  return useQuery({
+    queryKey: ['survey-results', surveyId],
+    queryFn: () => api.getSurveyResults(surveyId!),
+    enabled: !!surveyId,
+  })
+}
+
+export function useSetTeacherRating() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { surveyId: string; rating: number }) =>
+      api.setTeacherRating(params.surveyId, params.rating),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['surveys'] })
+      qc.invalidateQueries({ queryKey: ['active-surveys'] })
+    },
+  })
+}
+
+export function useCloseSurvey() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (surveyId: string) => api.closeSurvey(surveyId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['surveys'] })
+      qc.invalidateQueries({ queryKey: ['active-surveys'] })
+      qc.invalidateQueries({ queryKey: ['economy-events'] })
+      qc.invalidateQueries({ queryKey: ['stocks'] })
+      qc.invalidateQueries({ queryKey: ['stock-price-history'] })
+    },
+  })
+}
+
+export function useApplySurveyToStocks() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (surveyId: string) => api.applySurveyToStocks(surveyId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['surveys'] })
+      qc.invalidateQueries({ queryKey: ['economy-events'] })
+      qc.invalidateQueries({ queryKey: ['stocks'] })
+      qc.invalidateQueries({ queryKey: ['stock-price-history'] })
+    },
+  })
+}
+
+export function useDeleteSurvey() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (surveyId: string) => api.deleteSurvey(surveyId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['surveys'] })
+      qc.invalidateQueries({ queryKey: ['active-surveys'] })
+    },
+  })
+}

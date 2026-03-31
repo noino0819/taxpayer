@@ -268,7 +268,7 @@ async function logAccountDeletion(userId: string, role: string, dataSummary: Rec
 }
 
 export async function deleteTeacherAccount(userId: string) {
-  const { data: user } = await supabase
+  await supabase
     .from('users')
     .select('name, email')
     .eq('id', userId)
@@ -323,7 +323,7 @@ export async function deleteTeacherAccount(userId: string) {
 }
 
 export async function deleteStudentAccount(userId: string, classroomId: string) {
-  const { data: user } = await supabase
+  await supabase
     .from('users')
     .select('name')
     .eq('id', userId)

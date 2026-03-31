@@ -618,3 +618,378 @@ function StockTradeCard({ summary: stock, currency, isExpanded, onToggle }: {
     </div>
   )
 }
+
+// ═══════════════════════════════════════════
+// 만족도 조사 탭
+// ═══════════════════════════════════════════
+
+const INPUT_MODE_LABELS: Record<SatisfactionInputMode, string> = {
+  student: '학생만 투표',
+  teacher: '선생님만 입력',
+  both: '학생 + 선생님 모두',
+}
+
+function SurveyTab() {
+  const { data: surveys, isLoading } = useSurveys()
+  const createMutation = useCreateSurvey()
+  const [showCreate, setShowCreate] = useState(false)
+
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [factorType, setFactorType] = useState('satisfaction')
+  const [inputMode, setInputMode] = useState<SatisfactionInputMode>('both')
+  const [autoApply, setAutoApply] = useState(false)
+
+  const openSurveys = (surveys ?? []).filter((s) => s.status === 'open')
+  const closedSurveys = (surveys ?? []).filter((s) => s.status === 'closed')
+
+  const resetForm = () => {
+    setTitle('')
+    setDescription('')
+    setFactorType('satisfaction')
+    setInputMode('both')
+    setAutoApply(false)
+    setShowCreate(false)
+  }
+
+  const handleCreate = async () => {
+    if (!title.trim()) { toast.error('제목을 입력해주세요.'); return }
+    try {
+      await createMutation.mutateAsync({
+        title: title.trim(),
+        description: description.trim(),
+        factor_type: factorType,
+        input_mode: inputMode,
+        auto_apply: autoApply,
+      })
+      toast.success('만족도 조사가 생성되었습니다.')
+      resetForm()
+    } catch { toast.error('생성에 실패했습니다.') }
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-bold">만족도 조사</h3>
+            <p className="text-xs text-text-tertiary mt-1">
+              급식, 청소, 출석 등의 만족도를 조사하고, 결과를 주가에 반영할 수 있습니다.
+            </p>
+          </div>
+          <Button size="sm" onClick={() => setShowCreate(true)}>새 조사 만들기</Button>
+        </div>
+
+        {isLoading ? (
+          <p className="text-center text-text-tertiary text-sm py-6">로딩 중...</p>
+        ) : openSurveys.length === 0 ? (
+          <p className="text-center text-text-tertiary text-sm py-6">진행 중인 조사가 없습니다.</p>
+        ) : (
+          <div className="space-y-3">
+            {openSurveys.map((survey) => (
+              <SurveyCard key={survey.id} survey={survey} />
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {closedSurveys.length > 0 && (
+        <Card>
+          <h3 className="font-bold mb-4">마감된 조사</h3>
+          <div className="space-y-3">
+            {closedSurveys.map((survey) => (
+              <SurveyCard key={survey.id} survey={survey} />
+            ))}
+          </div>
+        </Card>
+      )}
+
+      <Modal isOpen={showCreate} onClose={resetForm} title="새 만족도 조사" size="md">
+        <div className="space-y-4">
+          <Input
+            label="제목"
+            placeholder="예: 오늘 급식 만족도"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <Input
+            label="설명 (선택)"
+            placeholder="예: 오늘 급식은 어땠나요?"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+
+          <div>
+            <label className="text-sm font-semibold text-text-secondary mb-2 block">연결 지표</label>
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(STOCK_FACTOR_LABELS).filter(([k]) => k !== 'custom').map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setFactorType(key)}
+                  className={`p-2 rounded-xl border text-sm font-medium transition-all ${
+                    factorType === key
+                      ? 'border-primary-400 bg-primary-50 text-primary-700'
+                      : 'border-border hover:border-primary-200 text-text-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold text-text-secondary mb-2 block">입력 방식</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(Object.entries(INPUT_MODE_LABELS) as [SatisfactionInputMode, string][]).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  onClick={() => setInputMode(mode)}
+                  className={`p-2 rounded-xl border text-sm font-medium transition-all ${
+                    inputMode === mode
+                      ? 'border-primary-400 bg-primary-50 text-primary-700'
+                      : 'border-border hover:border-primary-200 text-text-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <label className="flex items-center gap-3 p-3 rounded-xl border border-border cursor-pointer hover:border-primary-200 transition-colors">
+            <input
+              type="checkbox"
+              checked={autoApply}
+              onChange={(e) => setAutoApply(e.target.checked)}
+              className="w-4 h-4 rounded border-border-light text-primary-500 focus:ring-primary-500"
+            />
+            <div>
+              <p className="text-sm font-semibold">마감 시 자동 반영</p>
+              <p className="text-xs text-text-tertiary">마감하면 평균 점수가 자동으로 주가에 반영됩니다</p>
+            </div>
+          </label>
+
+          <Button className="w-full" onClick={handleCreate} isLoading={createMutation.isPending}>
+            조사 시작하기
+          </Button>
+        </div>
+      </Modal>
+    </div>
+  )
+}
+
+function SurveyCard({ survey }: { survey: SatisfactionSurvey }) {
+  const { data: result } = useSurveyResults(survey.id)
+  const closeMutation = useCloseSurvey()
+  const applyMutation = useApplySurveyToStocks()
+  const deleteMutation = useDeleteSurvey()
+  const teacherRatingMutation = useSetTeacherRating()
+  const [teacherScore, setTeacherScore] = useState(survey.teacher_rating ?? 0)
+  const [expanded, setExpanded] = useState(false)
+
+  const isOpen = survey.status === 'open'
+  const factorLabel = STOCK_FACTOR_LABELS[survey.factor_type] || survey.factor_type
+
+  const handleClose = async () => {
+    try {
+      await closeMutation.mutateAsync(survey.id)
+      toast.success('만족도 조사가 마감되었습니다.')
+    } catch { toast.error('마감에 실패했습니다.') }
+  }
+
+  const handleApply = async () => {
+    try {
+      await applyMutation.mutateAsync(survey.id)
+      toast.success('주가에 반영되었습니다!')
+    } catch (e: any) {
+      toast.error(e?.message || '반영에 실패했습니다.')
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync(survey.id)
+      toast.success('조사가 삭제되었습니다.')
+    } catch { toast.error('삭제에 실패했습니다.') }
+  }
+
+  const handleTeacherRating = async (rating: number) => {
+    setTeacherScore(rating)
+    try {
+      await teacherRatingMutation.mutateAsync({ surveyId: survey.id, rating })
+    } catch { toast.error('점수 입력에 실패했습니다.') }
+  }
+
+  const canTeacherRate = survey.input_mode === 'teacher' || survey.input_mode === 'both'
+
+  return (
+    <div className="border border-border/50 rounded-2xl overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full p-4 flex items-center justify-between hover:bg-surface-tertiary transition-colors text-left"
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+            isOpen ? 'bg-accent-100' : 'bg-surface-tertiary'
+          }`}>
+            {isOpen ? '📋' : '✅'}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="font-bold text-sm">{survey.title}</p>
+              <Badge variant={isOpen ? 'accent' : 'neutral'} size="sm">
+                {isOpen ? '진행 중' : '마감'}
+              </Badge>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-tertiary text-text-tertiary">
+                {factorLabel}
+              </span>
+            </div>
+            {survey.description && (
+              <p className="text-xs text-text-tertiary mt-0.5">{survey.description}</p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {result && (
+            <div className="text-right">
+              <p className="text-xs text-text-tertiary">{result.responseCount}명 참여</p>
+              {result.avgRating != null && (
+                <p className="text-sm font-bold">평균 {result.avgRating}점</p>
+              )}
+            </div>
+          )}
+          <svg className={`w-4 h-4 text-text-tertiary transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-border/50 p-4 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-text-tertiary mb-1">입력 방식</p>
+              <p className="text-sm font-medium">{INPUT_MODE_LABELS[survey.input_mode]}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-text-tertiary mb-1">자동 반영</p>
+              <p className="text-sm font-medium">{survey.auto_apply ? '마감 시 자동' : '수동'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-text-tertiary mb-1">생성일</p>
+              <p className="text-sm font-medium">
+                {new Date(survey.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+            {survey.closed_at && (
+              <div>
+                <p className="text-xs font-semibold text-text-tertiary mb-1">마감일</p>
+                <p className="text-sm font-medium">
+                  {new Date(survey.closed_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {result && result.responseCount > 0 && (
+            <SurveyResultBar result={result} />
+          )}
+
+          {isOpen && canTeacherRate && (
+            <div className="bg-surface-tertiary rounded-xl p-3">
+              <p className="text-xs font-semibold text-text-secondary mb-2">선생님 직접 점수</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => handleTeacherRating(star)}
+                    className={`text-2xl transition-transform hover:scale-110 ${
+                      star <= teacherScore ? 'opacity-100' : 'opacity-25'
+                    }`}
+                  >
+                    ⭐
+                  </button>
+                ))}
+                {teacherScore > 0 && (
+                  <span className="ml-2 text-sm font-bold self-center">{teacherScore}점</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {survey.avg_rating != null && (
+            <div className="bg-surface-tertiary rounded-xl p-3 text-center">
+              <p className="text-xs text-text-tertiary">최종 평균 점수</p>
+              <p className="text-xl font-bold mt-1">{survey.avg_rating}점</p>
+              <p className="text-xs text-text-tertiary mt-1">
+                주가 영향: {(() => {
+                  const impact = Math.round((survey.avg_rating! - 3) * 10)
+                  return `${impact >= 0 ? '+' : ''}${impact}%`
+                })()}
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            {isOpen && (
+              <Button
+                className="flex-1"
+                onClick={handleClose}
+                isLoading={closeMutation.isPending}
+              >
+                마감하기
+              </Button>
+            )}
+            {!isOpen && !survey.applied_event_id && survey.avg_rating != null && (
+              <Button
+                className="flex-1"
+                onClick={handleApply}
+                isLoading={applyMutation.isPending}
+              >
+                주가에 반영하기
+              </Button>
+            )}
+            {!isOpen && survey.applied_event_id && (
+              <Badge variant="accent">주가 반영 완료</Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              isLoading={deleteMutation.isPending}
+            >
+              삭제
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SurveyResultBar({ result }: { result: SurveyResult }) {
+  const maxCount = Math.max(...Object.values(result.distribution), 1)
+
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs font-semibold text-text-tertiary">응답 분포</p>
+      {[5, 4, 3, 2, 1].map((star) => {
+        const count = result.distribution[star] ?? 0
+        const pct = result.responseCount > 0 ? Math.round((count / result.responseCount) * 100) : 0
+        return (
+          <div key={star} className="flex items-center gap-2">
+            <span className="text-xs w-8 text-right font-medium">{star}점</span>
+            <div className="flex-1 h-4 bg-surface-tertiary rounded-full overflow-hidden">
+              <div
+                className="h-full bg-warning-400 rounded-full transition-all"
+                style={{ width: `${maxCount > 0 ? (count / maxCount) * 100 : 0}%` }}
+              />
+            </div>
+            <span className="text-xs w-12 text-right text-text-tertiary">{count}명 ({pct}%)</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
