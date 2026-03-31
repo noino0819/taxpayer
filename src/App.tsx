@@ -27,6 +27,9 @@ import { CreditPage } from '@/pages/student/CreditPage'
 import { RealEstatePage } from '@/pages/student/RealEstatePage'
 import { InvestmentPage } from '@/pages/student/InvestmentPage'
 import { InsurancePage } from '@/pages/student/InsurancePage'
+import { AchievementsPage } from '@/pages/student/AchievementsPage'
+import { QuizPage } from '@/pages/student/QuizPage'
+import { BoardPage } from '@/pages/student/BoardPage'
 import { TaxManagePage } from '@/pages/teacher/TaxManagePage'
 
 const queryClient = new QueryClient({
@@ -103,6 +106,9 @@ export default function App() {
             <Route path="real-estate" element={<RealEstatePage />} />
             <Route path="investment" element={<InvestmentPage />} />
             <Route path="insurance" element={<InsurancePage />} />
+            <Route path="achievements" element={<AchievementsPage />} />
+            <Route path="quiz" element={<QuizPage />} />
+            <Route path="board" element={<BoardPage />} />
             <Route path="more" element={<MorePage />} />
           </Route>
 

@@ -12,6 +12,8 @@ import {
   HiOutlineAcademicCap,
   HiOutlineCog6Tooth,
   HiOutlineInformationCircle,
+  HiOutlineClipboardDocumentList,
+  HiOutlineStar,
 } from 'react-icons/hi2'
 
 export function MorePage() {
@@ -26,6 +28,8 @@ export function MorePage() {
     { icon: HiOutlineBuildingLibrary, label: '은행', to: '/student/bank', show: isEnabled('bank'), color: 'text-amber-500' },
     { icon: HiOutlineTrophy, label: '성취 배지', to: '/student/achievements', show: isEnabled('achievement'), color: 'text-yellow-500' },
     { icon: HiOutlineAcademicCap, label: '경제 퀴즈', to: '/student/quiz', show: isEnabled('quiz'), color: 'text-blue-500' },
+    { icon: HiOutlineStar, label: '신용 등급', to: '/student/credit', show: isEnabled('credit'), color: 'text-orange-500' },
+    { icon: HiOutlineClipboardDocumentList, label: '학급 게시판', to: '/student/board', show: true, color: 'text-slate-500' },
   ].filter((item) => item.show)
 
   return (
