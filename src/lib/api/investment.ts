@@ -70,6 +70,16 @@ export async function getUserHoldings(userId: string, classroomId: string) {
   return holdings
 }
 
+/**
+ * 수요/공급 기반 가격 영향도 계산.
+ * 주당 2% 영향, 최대 ±20% 제한, 최소 가격 1.
+ */
+function calcPriceAfterTrade(currentPrice: number, quantity: number, direction: 'buy' | 'sell'): number {
+  const impactRate = Math.min(quantity * 0.02, 0.20)
+  const multiplier = direction === 'buy' ? 1 + impactRate : 1 - impactRate
+  return Math.max(1, Math.round(currentPrice * multiplier))
+}
+
 export async function buyStock(stockId: string, userId: string, accountId: string, quantity: number): Promise<StockTransaction> {
   const { data: stock } = await supabase.from('stocks').select('current_price, name').eq('id', stockId).single()
   if (!stock) throw new Error('종목을 찾을 수 없습니다.')
@@ -91,6 +101,9 @@ export async function buyStock(stockId: string, userId: string, accountId: strin
     description: `주식 매수 - ${stock.name} ${quantity}주`,
   })
   await supabase.rpc('update_balance', { p_account_id: accountId, p_amount: -totalCost })
+
+  const newPrice = calcPriceAfterTrade(stock.current_price, quantity, 'buy')
+  await supabase.from('stocks').update({ current_price: newPrice }).eq('id', stockId)
 
   return txn as StockTransaction
 }
@@ -117,5 +130,31 @@ export async function sellStock(stockId: string, userId: string, accountId: stri
   })
   await supabase.rpc('update_balance', { p_account_id: accountId, p_amount: totalRevenue })
 
+  const newPrice = calcPriceAfterTrade(stock.current_price, quantity, 'sell')
+  await supabase.from('stocks').update({ current_price: newPrice }).eq('id', stockId)
+
   return txn as StockTransaction
+}
+
+/** 교사가 특정 종목의 가격을 직접 설정 */
+export async function setStockPrice(stockId: string, newPrice: number): Promise<void> {
+  if (newPrice < 1) throw new Error('가격은 1 이상이어야 합니다.')
+  await supabase.from('stocks').update({ current_price: newPrice }).eq('id', stockId)
+}
+
+/** 하루 마감: 현재가를 전일 종가로 스냅샷 (등락률 리셋) */
+export async function closeMarketDay(classroomId: string): Promise<void> {
+  const { data: stocks } = await supabase
+    .from('stocks')
+    .select('id, current_price')
+    .eq('classroom_id', classroomId)
+    .eq('is_active', true)
+
+  if (!stocks || stocks.length === 0) return
+
+  await Promise.all(
+    stocks.map((s) =>
+      supabase.from('stocks').update({ previous_price: s.current_price }).eq('id', s.id),
+    ),
+  )
 }

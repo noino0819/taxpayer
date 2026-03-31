@@ -269,6 +269,22 @@ export function useAssignJob() {
   })
 }
 
+export function usePaySalaries() {
+  const qc = useQueryClient()
+  const classroomId = useClassroomId()
+  return useMutation({
+    mutationFn: (params: { items: { userId: string; amount: number; jobName: string }[]; approvedBy: string }) =>
+      api.paySalaries(classroomId!, params.items, params.approvedBy),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['accounts'] })
+      qc.invalidateQueries({ queryKey: ['transactions'] })
+      qc.invalidateQueries({ queryKey: ['my-account'] })
+      qc.invalidateQueries({ queryKey: ['account-stats'] })
+      qc.invalidateQueries({ queryKey: ['monthly-stats'] })
+    },
+  })
+}
+
 // ═══════════════════════════════════════════
 // Modules
 // ═══════════════════════════════════════════
@@ -289,6 +305,16 @@ export function useToggleModule() {
   return useMutation({
     mutationFn: (params: { moduleName: Parameters<typeof api.toggleModule>[1]; enabled: boolean }) =>
       api.toggleModule(classroomId!, params.moduleName, params.enabled, userId!),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['module-configs'] }),
+  })
+}
+
+export function useUpdateModuleSettings() {
+  const qc = useQueryClient()
+  const classroomId = useClassroomId()
+  return useMutation({
+    mutationFn: (params: { moduleName: Parameters<typeof api.updateModuleSettings>[1]; settings: Record<string, unknown> }) =>
+      api.updateModuleSettings(classroomId!, params.moduleName, params.settings),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['module-configs'] }),
   })
 }
@@ -432,6 +458,24 @@ export function useSellStock() {
       qc.invalidateQueries({ queryKey: ['holdings'] })
       qc.invalidateQueries({ queryKey: ['my-account'] })
     },
+  })
+}
+
+export function useSetStockPrice() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { stockId: string; newPrice: number }) =>
+      api.setStockPrice(params.stockId, params.newPrice),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['stocks'] }),
+  })
+}
+
+export function useCloseMarketDay() {
+  const qc = useQueryClient()
+  const classroomId = useClassroomId()
+  return useMutation({
+    mutationFn: () => api.closeMarketDay(classroomId!),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['stocks'] }),
   })
 }
 
