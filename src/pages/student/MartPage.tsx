@@ -62,7 +62,7 @@ export function MartPage() {
             onClick={() => setActiveCategory(cat)}
             className={`px-4 py-2 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${
               activeCategory === cat
-                ? 'bg-primary-500 text-white shadow-[0_2px_8px_rgba(99,102,241,0.3)]'
+                ? 'bg-primary-500 text-white shadow-[0_2px_8px_rgba(82,179,56,0.3)]'
                 : 'bg-surface border border-border/60 text-text-secondary'
             }`}
           >

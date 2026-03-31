@@ -71,7 +71,7 @@ export function RealEstatePage() {
                     disabled={isOccupied}
                     className={`p-2.5 rounded-2xl border-2 text-center text-xs transition-all min-h-[68px] ${
                       isMine
-                        ? 'border-primary-400 bg-gradient-to-br from-primary-100 to-primary-50 text-primary-700 shadow-[0_2px_8px_rgba(99,102,241,0.15)]'
+                        ? 'border-primary-400 bg-gradient-to-br from-primary-100 to-primary-50 text-primary-700 shadow-[0_2px_8px_rgba(82,179,56,0.15)]'
                         : isOccupied
                           ? 'border-border/60 bg-surface-tertiary text-text-tertiary'
                           : 'border-border/40 bg-surface hover:border-primary-300 hover:bg-primary-50/50 hover:shadow-sm'

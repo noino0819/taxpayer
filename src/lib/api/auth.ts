@@ -1,5 +1,24 @@
 import { supabase } from '@/lib/supabase'
-import type { User } from '@/types/database'
+import type { User, PrivacyConsent } from '@/types/database'
+
+export async function recordPrivacyConsent(userId: string) {
+  const consents = [
+    { user_id: userId, consent_type: 'privacy_policy', version: '1.0', consented: true },
+    { user_id: userId, consent_type: 'terms_of_service', version: '1.0', consented: true },
+  ]
+  const { error } = await supabase.from('privacy_consents').insert(consents)
+  if (error) throw error
+}
+
+export async function getPrivacyConsents(userId: string): Promise<PrivacyConsent[]> {
+  const { data, error } = await supabase
+    .from('privacy_consents')
+    .select('*')
+    .eq('user_id', userId)
+    .order('consented_at', { ascending: false })
+  if (error) throw error
+  return data as PrivacyConsent[]
+}
 
 export async function signUpTeacher(email: string, password: string, name: string) {
   const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -15,6 +34,8 @@ export async function signUpTeacher(email: string, password: string, name: strin
     .select()
     .single()
   if (error) throw error
+
+  await recordPrivacyConsent(data.id)
   return data as User
 }
 
@@ -100,6 +121,7 @@ export async function signUpStudent(name: string, password: string, inviteCode: 
     .insert({ user_id: user.id, classroom_id: classroom.id, status: 'pending' })
   if (memError) throw memError
 
+  await recordPrivacyConsent(user.id)
   return user as User
 }
 
@@ -220,6 +242,58 @@ export async function updatePassword(newPassword: string) {
 
 export async function signOut() {
   await supabase.auth.signOut()
+}
+
+export async function deleteTeacherAccount(userId: string) {
+  const { data: classrooms } = await supabase
+    .from('classrooms')
+    .select('id')
+    .eq('teacher_id', userId)
+
+  if (classrooms && classrooms.length > 0) {
+    for (const classroom of classrooms) {
+      const { data: members } = await supabase
+        .from('memberships')
+        .select('user_id')
+        .eq('classroom_id', classroom.id)
+
+      if (members) {
+        for (const member of members) {
+          await supabase.from('accounts').delete().eq('user_id', member.user_id).eq('classroom_id', classroom.id)
+        }
+        const studentIds = members.map((m) => m.user_id)
+        if (studentIds.length > 0) {
+          await supabase.from('memberships').delete().eq('classroom_id', classroom.id)
+          await supabase.from('users').delete().in('id', studentIds)
+        }
+      }
+
+      await supabase.from('classrooms').delete().eq('id', classroom.id)
+    }
+  }
+
+  await supabase.from('privacy_consents').delete().eq('user_id', userId)
+  await supabase.from('users').delete().eq('id', userId)
+  await supabase.auth.signOut()
+}
+
+export async function deleteStudentAccount(userId: string, classroomId: string) {
+  await supabase.from('accounts').delete().eq('user_id', userId).eq('classroom_id', classroomId)
+  await supabase.from('memberships').delete().eq('user_id', userId).eq('classroom_id', classroomId)
+  await supabase.from('job_assignments').delete().eq('user_id', userId)
+  await supabase.from('stock_transactions').delete().eq('user_id', userId)
+  await supabase.from('insurance_contracts').delete().eq('user_id', userId)
+  await supabase.from('savings_accounts').delete().eq('user_id', userId)
+  await supabase.from('privacy_consents').delete().eq('user_id', userId)
+
+  const { data: otherMemberships } = await supabase
+    .from('memberships')
+    .select('id')
+    .eq('user_id', userId)
+
+  if (!otherMemberships || otherMemberships.length === 0) {
+    await supabase.from('users').delete().eq('id', userId)
+  }
 }
 
 export async function getCurrentUser(): Promise<User | null> {

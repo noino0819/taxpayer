@@ -284,6 +284,18 @@ export interface AvatarPreset {
   sort_order: number
 }
 
+export interface PrivacyConsent {
+  id: string
+  user_id: string
+  consent_type: 'privacy_policy' | 'terms_of_service'
+  version: string
+  consented: boolean
+  consented_at: string
+  ip_address: string | null
+  user_agent: string | null
+  withdrawn_at: string | null
+}
+
 export type ModuleName =
   | 'job'
   | 'mart'

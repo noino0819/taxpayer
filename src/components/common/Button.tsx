@@ -12,9 +12,9 @@ interface ButtonProps extends React.ComponentPropsWithoutRef<'button'> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 active:from-primary-700 active:to-primary-800 shadow-[0_2px_8px_rgba(99,102,241,0.3)]',
+  primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 active:from-primary-700 active:to-primary-800 shadow-[0_2px_8px_rgba(82,179,56,0.3)]',
   secondary: 'bg-surface text-text-primary hover:bg-surface-tertiary active:bg-border border border-border/80',
-  accent: 'bg-gradient-to-r from-accent-500 to-accent-600 text-white hover:from-accent-600 hover:to-accent-700 active:from-accent-700 active:to-accent-800 shadow-[0_2px_8px_rgba(16,185,129,0.3)]',
+  accent: 'bg-gradient-to-r from-accent-500 to-accent-600 text-white hover:from-accent-600 hover:to-accent-700 active:from-accent-700 active:to-accent-800 shadow-[0_2px_8px_rgba(59,130,246,0.3)]',
   danger: 'bg-gradient-to-r from-danger-500 to-danger-600 text-white hover:from-danger-600 hover:to-danger-700 shadow-[0_2px_8px_rgba(244,63,94,0.3)]',
   ghost: 'bg-transparent text-text-secondary hover:bg-surface-tertiary active:bg-border-light',
 }

@@ -100,7 +100,7 @@ export function TeacherLayout() {
       <aside className="hidden lg:flex w-[260px] bg-surface border-r border-border/50 flex-col fixed h-full">
         <div className="p-5 border-b border-border/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-sm font-extrabold shadow-[0_2px_8px_rgba(99,102,241,0.3)]">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-sm font-extrabold shadow-[0_2px_8px_rgba(82,179,56,0.3)]">
               TP
             </div>
             <div>
@@ -123,7 +123,7 @@ export function TeacherLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                   isActive
-                    ? 'bg-primary-50 text-primary-600 shadow-[0_1px_4px_rgba(99,102,241,0.08)]'
+                    ? 'bg-primary-50 text-primary-600 shadow-[0_1px_4px_rgba(82,179,56,0.08)]'
                     : 'text-text-secondary hover:bg-surface-tertiary hover:text-text-primary'
                 }`
               }

@@ -201,7 +201,7 @@ export function SettingsPage() {
                 <button
                   onClick={() => handleToggle(key)}
                   className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
-                    modules[key] ? 'bg-gradient-to-r from-accent-500 to-accent-400 shadow-[0_2px_6px_rgba(16,185,129,0.3)]' : 'bg-border'
+                    modules[key] ? 'bg-gradient-to-r from-accent-500 to-accent-400 shadow-[0_2px_6px_rgba(59,130,246,0.3)]' : 'bg-border'
                   }`}
                 >
                   <span
@@ -239,7 +239,7 @@ export function SettingsPage() {
               }}
               className={`p-5 rounded-2xl border-2 text-left transition-all ${
                 currentClassroom?.economy_mode === option.mode
-                  ? 'border-primary-400 bg-gradient-to-br from-primary-50 to-surface ring-2 ring-primary-200/50 shadow-[0_2px_8px_rgba(99,102,241,0.08)]'
+                  ? 'border-primary-400 bg-gradient-to-br from-primary-50 to-surface ring-2 ring-primary-200/50 shadow-[0_2px_8px_rgba(82,179,56,0.08)]'
                   : 'border-border/50 hover:border-primary-200 hover:bg-surface-tertiary'
               }`}
             >
@@ -306,7 +306,7 @@ function AutoCloseMarketSettings({ moduleConfigs, classroomId }: { moduleConfigs
         <button
           onClick={() => setEnabled(!enabled)}
           className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
-            enabled ? 'bg-gradient-to-r from-accent-500 to-accent-400 shadow-[0_2px_6px_rgba(16,185,129,0.3)]' : 'bg-border'
+            enabled ? 'bg-gradient-to-r from-accent-500 to-accent-400 shadow-[0_2px_6px_rgba(59,130,246,0.3)]' : 'bg-border'
           }`}
         >
           <span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${

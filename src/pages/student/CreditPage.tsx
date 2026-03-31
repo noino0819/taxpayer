@@ -56,7 +56,7 @@ export function CreditPage() {
                 animate={isCurrentGrade ? { scale: 1.02 } : { scale: 1 }}
                 className={`p-3.5 rounded-2xl border transition-all ${
                   isCurrentGrade
-                    ? 'border-primary-300 bg-gradient-to-r from-primary-50 to-surface shadow-[0_2px_8px_rgba(99,102,241,0.1)]'
+                    ? 'border-primary-300 bg-gradient-to-r from-primary-50 to-surface shadow-[0_2px_8px_rgba(82,179,56,0.1)]'
                     : 'border-border/50'
                 }`}
               >

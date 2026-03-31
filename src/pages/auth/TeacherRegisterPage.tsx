@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { PasswordStrength } from '@/components/common/PasswordStrength'
+import { PrivacyConsentModal } from '@/components/common/PrivacyConsentModal'
 import { useAuthStore } from '@/stores/authStore'
 import { signUpTeacher } from '@/lib/api/auth'
 import { createClassroom } from '@/lib/api/classrooms'
@@ -14,6 +15,9 @@ export function TeacherRegisterPage() {
   const navigate = useNavigate()
   const { setUser, setCurrentClassroom } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
+  const [privacyAgreed, setPrivacyAgreed] = useState(false)
+  const [termsAgreed, setTermsAgreed] = useState(false)
+  const [showPrivacyModal, setShowPrivacyModal] = useState<'privacy' | 'terms' | null>(null)
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -38,6 +42,11 @@ export function TeacherRegisterPage() {
 
     if (form.password.length < 6) {
       toast.error('비밀번호는 6자리 이상이어야 합니다.')
+      return
+    }
+
+    if (!privacyAgreed || !termsAgreed) {
+      toast.error('개인정보 수집·이용 및 서비스 이용약관에 동의해주세요.')
       return
     }
 
@@ -128,7 +137,7 @@ export function TeacherRegisterPage() {
                   <Input
                     label="학년"
                     type="number"
-                    placeholder="5"
+                    placeholder="힉년을 입력해주세요"
                     min={1}
                     max={6}
                     value={form.grade}
@@ -137,7 +146,7 @@ export function TeacherRegisterPage() {
                   />
                   <Input
                     label="반"
-                    placeholder="3 또는 솔"
+                    placeholder="반을 입력해주세요"
                     value={form.classNum}
                     onChange={(e) => updateForm('classNum', e.target.value)}
                     required
