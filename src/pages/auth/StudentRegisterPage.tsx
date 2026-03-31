@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { EmojiAvatarPicker } from '@/components/common/EmojiAvatarPicker'
+import { PrivacyConsentModal } from '@/components/common/PrivacyConsentModal'
 import { signUpStudent } from '@/lib/api/auth'
 import toast from 'react-hot-toast'
 
@@ -12,6 +13,9 @@ export function StudentRegisterPage() {
   const [searchParams] = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
   const [done, setDone] = useState(false)
+  const [privacyAgreed, setPrivacyAgreed] = useState(false)
+  const [termsAgreed, setTermsAgreed] = useState(false)
+  const [showPrivacyModal, setShowPrivacyModal] = useState<'privacy' | 'terms' | null>(null)
   const [form, setForm] = useState({
     name: '',
     password: '',
@@ -39,6 +43,11 @@ export function StudentRegisterPage() {
 
     if (form.inviteCode.length !== 6) {
       toast.error('초대 코드는 6자리입니다.')
+      return
+    }
+
+    if (!privacyAgreed || !termsAgreed) {
+      toast.error('개인정보 수집·이용 및 서비스 이용약관에 동의해주세요.')
       return
     }
 
@@ -157,7 +166,46 @@ export function StudentRegisterPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
+            <div className="border-t border-border pt-4 space-y-3">
+              <label className="flex items-start gap-2.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={privacyAgreed}
+                  onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                  className="mt-0.5 w-4.5 h-4.5 rounded border-border text-primary-500 focus:ring-primary-500 accent-primary-500"
+                />
+                <span className="text-sm text-text-secondary leading-snug">
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacyModal('privacy')}
+                    className="text-primary-500 hover:underline font-medium"
+                  >
+                    개인정보 수집·이용
+                  </button>
+                  에 동의합니다. <span className="text-danger-500">(필수)</span>
+                </span>
+              </label>
+              <label className="flex items-start gap-2.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={termsAgreed}
+                  onChange={(e) => setTermsAgreed(e.target.checked)}
+                  className="mt-0.5 w-4.5 h-4.5 rounded border-border text-primary-500 focus:ring-primary-500 accent-primary-500"
+                />
+                <span className="text-sm text-text-secondary leading-snug">
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacyModal('terms')}
+                    className="text-primary-500 hover:underline font-medium"
+                  >
+                    서비스 이용약관
+                  </button>
+                  에 동의합니다. <span className="text-danger-500">(필수)</span>
+                </span>
+              </label>
+            </div>
+
+            <Button type="submit" className="w-full" size="lg" isLoading={isLoading} disabled={!privacyAgreed || !termsAgreed}>
               가입 신청하기
             </Button>
           </form>
@@ -170,6 +218,12 @@ export function StudentRegisterPage() {
           </Link>
         </p>
       </motion.div>
+
+      <PrivacyConsentModal
+        isOpen={showPrivacyModal !== null}
+        onClose={() => setShowPrivacyModal(null)}
+        type={showPrivacyModal ?? 'privacy'}
+      />
     </div>
   )
 }

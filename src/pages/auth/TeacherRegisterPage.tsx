@@ -155,7 +155,46 @@ export function TeacherRegisterPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
+            <div className="border-t border-border pt-4 space-y-3">
+              <label className="flex items-start gap-2.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={privacyAgreed}
+                  onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                  className="mt-0.5 w-4.5 h-4.5 rounded border-border text-primary-500 focus:ring-primary-500 accent-primary-500"
+                />
+                <span className="text-sm text-text-secondary leading-snug">
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacyModal('privacy')}
+                    className="text-primary-500 hover:underline font-medium"
+                  >
+                    개인정보 수집·이용
+                  </button>
+                  에 동의합니다. <span className="text-danger-500">(필수)</span>
+                </span>
+              </label>
+              <label className="flex items-start gap-2.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={termsAgreed}
+                  onChange={(e) => setTermsAgreed(e.target.checked)}
+                  className="mt-0.5 w-4.5 h-4.5 rounded border-border text-primary-500 focus:ring-primary-500 accent-primary-500"
+                />
+                <span className="text-sm text-text-secondary leading-snug">
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacyModal('terms')}
+                    className="text-primary-500 hover:underline font-medium"
+                  >
+                    서비스 이용약관
+                  </button>
+                  에 동의합니다. <span className="text-danger-500">(필수)</span>
+                </span>
+              </label>
+            </div>
+
+            <Button type="submit" className="w-full" size="lg" isLoading={isLoading} disabled={!privacyAgreed || !termsAgreed}>
               회원가입 완료
             </Button>
           </form>
@@ -168,6 +207,12 @@ export function TeacherRegisterPage() {
           </Link>
         </p>
       </motion.div>
+
+      <PrivacyConsentModal
+        isOpen={showPrivacyModal !== null}
+        onClose={() => setShowPrivacyModal(null)}
+        type={showPrivacyModal ?? 'privacy'}
+      />
     </div>
   )
 }

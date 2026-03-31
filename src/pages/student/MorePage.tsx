@@ -4,9 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
 import { EmojiAvatarPicker } from '@/components/common/EmojiAvatarPicker'
+import { Modal } from '@/components/common/Modal'
+import { Button } from '@/components/common/Button'
 import { useAuthStore } from '@/stores/authStore'
 import { useModuleStore } from '@/stores/moduleStore'
 import { useMyAccount, useUpdateStudentAvatar } from '@/hooks/useQueries'
+import { deleteStudentAccount } from '@/lib/api/auth'
 import { CREDIT_GRADES } from '@/lib/constants'
 import {
   HiOutlineBuildingLibrary,
@@ -20,6 +23,7 @@ import {
   HiOutlineArrowRightOnRectangle,
   HiOutlineKey,
   HiOutlinePencilSquare,
+  HiOutlineTrash,
 } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
@@ -36,10 +40,12 @@ const menuItems = [
 
 export function MorePage() {
   const navigate = useNavigate()
-  const { user, logout, setUser } = useAuthStore()
+  const { user, currentClassroom, logout, setUser } = useAuthStore()
   const { isEnabled } = useModuleStore()
   const { data: account } = useMyAccount()
   const [showAvatarPicker, setShowAvatarPicker] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const updateAvatarMutation = useUpdateStudentAvatar()
 
   const creditInfo = CREDIT_GRADES.find((g) => g.grade === (account?.credit_grade ?? 3))
@@ -59,6 +65,22 @@ export function MorePage() {
   const handleLogout = () => {
     logout()
     navigate('/login')
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!user || !currentClassroom) return
+    setIsDeleting(true)
+    try {
+      await deleteStudentAccount(user.id, currentClassroom.id)
+      logout()
+      toast.success('계정이 삭제되었습니다.')
+      navigate('/login')
+    } catch {
+      toast.error('계정 삭제에 실패했습니다.')
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+    }
   }
 
   return (
@@ -146,6 +168,40 @@ export function MorePage() {
         </div>
         <span className="font-bold text-sm">로그아웃</span>
       </motion.button>
+
+      <motion.button
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setShowDeleteModal(true)}
+        className="w-full flex items-center gap-3.5 p-3.5 bg-surface rounded-2xl border border-border/50 hover:bg-surface-tertiary text-text-tertiary transition-all text-left"
+      >
+        <div className="w-10 h-10 rounded-2xl bg-surface-tertiary flex items-center justify-center">
+          <HiOutlineTrash className="w-5 h-5" />
+        </div>
+        <span className="font-bold text-sm">회원 탈퇴</span>
+      </motion.button>
+
+      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="회원 탈퇴">
+        <div className="space-y-4">
+          <div className="bg-danger-50 rounded-2xl p-4 text-sm text-danger-700 space-y-1">
+            <p className="font-bold">정말 탈퇴하시겠습니까?</p>
+            <p>탈퇴하면 다음 데이터가 모두 삭제되며 복구할 수 없습니다.</p>
+            <ul className="list-disc pl-5 text-xs space-y-0.5 mt-2">
+              <li>통장 잔액 및 거래 기록</li>
+              <li>직업, 투자, 보험, 적금 내역</li>
+              <li>학급 소속 정보</li>
+              <li>개인정보 동의 기록</li>
+            </ul>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setShowDeleteModal(false)}>
+              취소
+            </Button>
+            <Button variant="danger" className="flex-1" isLoading={isDeleting} onClick={handleDeleteAccount}>
+              탈퇴하기
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </motion.div>
   )
 }

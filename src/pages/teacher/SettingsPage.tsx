@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import { Card } from '@/components/common/Card'
@@ -6,10 +7,12 @@ import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Badge } from '@/components/common/Badge'
 import { Tooltip } from '@/components/common/Tooltip'
+import { Modal } from '@/components/common/Modal'
 import { useAuthStore } from '@/stores/authStore'
 import { useModuleStore } from '@/stores/moduleStore'
 import { useModuleConfigs, useToggleModule, useUpdateClassroom } from '@/hooks/useQueries'
 import { updateModuleSettings } from '@/lib/api/modules'
+import { deleteTeacherAccount } from '@/lib/api/auth'
 import { MODULE_LABELS } from '@/lib/constants'
 import type { ModuleName } from '@/types/database'
 import { HiOutlineInformationCircle } from 'react-icons/hi2'
@@ -44,11 +47,15 @@ const presets = [
 ]
 
 export function SettingsPage() {
-  const { currentClassroom, setCurrentClassroom } = useAuthStore()
+  const navigate = useNavigate()
+  const { user, currentClassroom, setCurrentClassroom, logout } = useAuthStore()
   const { modules, setModule, syncFromConfigs } = useModuleStore()
   const [currencyName, setCurrencyName] = useState(currentClassroom?.currency_name || '미소')
   const [initialBalance, setInitialBalance] = useState(String(currentClassroom?.initial_balance || 50))
   const [showQR, setShowQR] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const inviteUrl = `${window.location.origin}/register/student?code=${currentClassroom?.invite_code || ''}`
 
   const { data: moduleConfigs } = useModuleConfigs()
@@ -252,6 +259,68 @@ export function SettingsPage() {
       </Card>
 
       <AutoCloseMarketSettings moduleConfigs={moduleConfigs ?? []} classroomId={currentClassroom?.id} />
+
+      <Card>
+        <h3 className="font-bold mb-1 text-danger-600">계정 삭제</h3>
+        <p className="text-sm text-text-tertiary mb-4">
+          계정을 삭제하면 학급 데이터, 학생 정보 등 모든 데이터가 영구적으로 삭제됩니다.
+        </p>
+        <Button variant="danger" size="sm" onClick={() => setShowDeleteModal(true)}>
+          회원 탈퇴
+        </Button>
+      </Card>
+
+      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="회원 탈퇴">
+        <div className="space-y-4">
+          <div className="bg-danger-50 rounded-2xl p-4 text-sm text-danger-700 space-y-1">
+            <p className="font-bold">정말 탈퇴하시겠습니까?</p>
+            <p>탈퇴하면 다음 데이터가 <strong>모두 삭제</strong>되며 <strong>복구할 수 없습니다</strong>.</p>
+            <ul className="list-disc pl-5 text-xs space-y-0.5 mt-2">
+              <li>학급 데이터 및 설정</li>
+              <li>소속 학생 계정 및 모든 경제 활동 기록</li>
+              <li>개인정보 동의 기록</li>
+            </ul>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+              확인을 위해 <strong className="text-danger-500">"탈퇴합니다"</strong>를 입력해주세요
+            </label>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="탈퇴합니다"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => { setShowDeleteModal(false); setDeleteConfirmText('') }}>
+              취소
+            </Button>
+            <Button
+              variant="danger"
+              className="flex-1"
+              disabled={deleteConfirmText !== '탈퇴합니다'}
+              isLoading={isDeleting}
+              onClick={async () => {
+                if (!user) return
+                setIsDeleting(true)
+                try {
+                  await deleteTeacherAccount(user.id)
+                  logout()
+                  toast.success('계정이 삭제되었습니다.')
+                  navigate('/login')
+                } catch {
+                  toast.error('계정 삭제에 실패했습니다.')
+                } finally {
+                  setIsDeleting(false)
+                  setShowDeleteModal(false)
+                }
+              }}
+            >
+              탈퇴하기
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </motion.div>
   )
 }
