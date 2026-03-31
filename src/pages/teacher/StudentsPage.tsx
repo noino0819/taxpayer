@@ -6,9 +6,9 @@ import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Modal } from '@/components/common/Modal'
 import { useAuthStore } from '@/stores/authStore'
-import { useClassroomMembers, useAllAccounts, useDeposit, useWithdraw, usePendingMembers, useApproveStudent, useRejectStudent } from '@/hooks/useQueries'
+import { useClassroomMembers, useAllAccounts, useDeposit, useWithdraw, usePendingMembers, useApproveStudent, useRejectStudent, useResetStudentPassword } from '@/hooks/useQueries'
 import { CREDIT_GRADES } from '@/lib/constants'
-import { HiOutlineMagnifyingGlass, HiOutlinePlusCircle, HiOutlineCheckCircle, HiOutlineXCircle } from 'react-icons/hi2'
+import { HiOutlineMagnifyingGlass, HiOutlinePlusCircle, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlineKey } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
 export function StudentsPage() {
@@ -17,6 +17,7 @@ export function StudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<any>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [actionAmount, setActionAmount] = useState('')
+  const [tempPassword, setTempPassword] = useState<string | null>(null)
   const currency = currentClassroom?.currency_name || '미소'
 
   const { data: members } = useClassroomMembers()
@@ -26,6 +27,7 @@ export function StudentsPage() {
   const withdrawMutation = useWithdraw()
   const approveMutation = useApproveStudent()
   const rejectMutation = useRejectStudent()
+  const resetPasswordMutation = useResetStudentPassword()
 
   const students = (members ?? [])
     .filter((m) => m.user?.role === 'student')
@@ -209,7 +211,7 @@ export function StudentsPage() {
 
       <Modal
         isOpen={!!selectedStudent}
-        onClose={() => { setSelectedStudent(null); setActionAmount('') }}
+        onClose={() => { setSelectedStudent(null); setActionAmount(''); setTempPassword(null) }}
         title={selectedStudent?.name}
         size="md"
       >
@@ -253,6 +255,34 @@ export function StudentsPage() {
               >
                 출금
               </Button>
+            </div>
+
+            <div className="border-t border-border pt-4">
+              {tempPassword ? (
+                <div className="bg-primary-50 rounded-2xl p-4 text-center border border-primary-200">
+                  <p className="text-sm text-text-secondary mb-2 font-bold">임시 비밀번호가 발급되었습니다</p>
+                  <p className="text-2xl font-bold text-primary-600 tracking-widest font-mono">{tempPassword}</p>
+                  <p className="text-xs text-text-tertiary mt-2">학생에게 이 비밀번호를 알려주세요.<br />로그인 시 새 비밀번호로 변경됩니다.</p>
+                </div>
+              ) : (
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  icon={<HiOutlineKey className="w-4 h-4" />}
+                  isLoading={resetPasswordMutation.isPending}
+                  onClick={async () => {
+                    try {
+                      const pw = await resetPasswordMutation.mutateAsync(selectedStudent.id)
+                      setTempPassword(pw)
+                      toast.success('임시 비밀번호가 발급되었습니다.')
+                    } catch {
+                      toast.error('비밀번호 초기화에 실패했습니다.')
+                    }
+                  }}
+                >
+                  비밀번호 초기화
+                </Button>
+              )}
             </div>
           </div>
         )}

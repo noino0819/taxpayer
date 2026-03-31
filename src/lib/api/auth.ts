@@ -34,7 +34,7 @@ export async function signInTeacher(email: string, password: string) {
   return data as User
 }
 
-export async function signInStudent(name: string, inviteCode: string, pin: string) {
+export async function signInStudent(name: string, inviteCode: string, password: string) {
   const { data: classroom, error: classError } = await supabase
     .from('classrooms')
     .select('id')
@@ -47,11 +47,11 @@ export async function signInStudent(name: string, inviteCode: string, pin: strin
     .from('users')
     .select('*, memberships!inner(classroom_id, status)')
     .eq('name', name)
-    .eq('pin', pin)
+    .eq('password', password)
     .eq('role', 'student')
     .eq('memberships.classroom_id', classroom.id)
     .single()
-  if (userError) throw new Error('이름 또는 PIN이 일치하지 않습니다.')
+  if (userError) throw new Error('이름 또는 비밀번호가 일치하지 않습니다.')
 
   const membership = (user as any).memberships?.[0]
   if (membership?.status === 'pending') {
@@ -64,7 +64,7 @@ export async function signInStudent(name: string, inviteCode: string, pin: strin
   return user as User
 }
 
-export async function signUpStudent(name: string, pin: string, inviteCode: string, avatarEmoji: string) {
+export async function signUpStudent(name: string, password: string, inviteCode: string, avatarEmoji: string) {
   const { data: classroom, error: classError } = await supabase
     .from('classrooms')
     .select('id, name, school, grade, class_num')
@@ -77,7 +77,7 @@ export async function signUpStudent(name: string, pin: string, inviteCode: strin
     .from('users')
     .select('id, memberships!inner(classroom_id, status)')
     .eq('name', name)
-    .eq('pin', pin)
+    .eq('password', password)
     .eq('role', 'student')
     .eq('memberships.classroom_id', classroom.id)
     .maybeSingle()
@@ -90,7 +90,7 @@ export async function signUpStudent(name: string, pin: string, inviteCode: strin
 
   const { data: user, error: userError } = await supabase
     .from('users')
-    .insert({ name, pin, role: 'student', avatar_preset_id: avatarEmoji })
+    .insert({ name, password, role: 'student', avatar_preset_id: avatarEmoji })
     .select()
     .single()
   if (userError) throw userError
@@ -161,6 +161,49 @@ export async function rejectStudent(membershipId: string) {
   if (!otherMemberships || otherMemberships.length === 0) {
     await supabase.from('users').delete().eq('id', membership.user_id)
   }
+}
+
+function generateTempPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+  let result = ''
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return result
+}
+
+export async function resetStudentPassword(userId: string): Promise<string> {
+  const tempPassword = generateTempPassword()
+  const { error } = await supabase
+    .from('users')
+    .update({ password: tempPassword, must_change_password: true })
+    .eq('id', userId)
+  if (error) throw error
+  return tempPassword
+}
+
+export async function changeStudentPassword(userId: string, currentPassword: string, newPassword: string) {
+  const { data: user, error: fetchError } = await supabase
+    .from('users')
+    .select('password')
+    .eq('id', userId)
+    .single()
+  if (fetchError) throw fetchError
+  if (user.password !== currentPassword) throw new Error('현재 비밀번호가 일치하지 않습니다.')
+
+  const { error } = await supabase
+    .from('users')
+    .update({ password: newPassword, must_change_password: false })
+    .eq('id', userId)
+  if (error) throw error
+}
+
+export async function updateStudentAvatar(userId: string, avatarEmoji: string) {
+  const { error } = await supabase
+    .from('users')
+    .update({ avatar_preset_id: avatarEmoji })
+    .eq('id', userId)
+  if (error) throw error
 }
 
 export async function requestPasswordReset(email: string) {

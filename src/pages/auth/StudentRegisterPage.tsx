@@ -3,13 +3,9 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
+import { EmojiAvatarPicker } from '@/components/common/EmojiAvatarPicker'
 import { signUpStudent } from '@/lib/api/auth'
 import toast from 'react-hot-toast'
-
-const AVATAR_OPTIONS = [
-  '😊', '😎', '🤓', '🦊', '🐱', '🐶', '🐰', '🐻',
-  '🦁', '🐯', '🐸', '🐧', '🦄', '🐳', '🦋', '🌟',
-]
 
 export function StudentRegisterPage() {
   const navigate = useNavigate()
@@ -18,8 +14,8 @@ export function StudentRegisterPage() {
   const [done, setDone] = useState(false)
   const [form, setForm] = useState({
     name: '',
-    pin: '',
-    pinConfirm: '',
+    password: '',
+    passwordConfirm: '',
     inviteCode: searchParams.get('code')?.toUpperCase() || '',
     avatar: '😊',
   })
@@ -31,13 +27,13 @@ export function StudentRegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (form.pin.length < 4) {
-      toast.error('PIN은 4자리 이상이어야 합니다.')
+    if (form.password.length < 4) {
+      toast.error('비밀번호는 4자리 이상이어야 합니다.')
       return
     }
 
-    if (form.pin !== form.pinConfirm) {
-      toast.error('PIN이 일치하지 않습니다.')
+    if (form.password !== form.passwordConfirm) {
+      toast.error('비밀번호가 일치하지 않습니다.')
       return
     }
 
@@ -48,7 +44,7 @@ export function StudentRegisterPage() {
 
     setIsLoading(true)
     try {
-      await signUpStudent(form.name, form.pin, form.inviteCode, form.avatar)
+      await signUpStudent(form.name, form.password, form.inviteCode, form.avatar)
       setDone(true)
     } catch (err) {
       const message = err instanceof Error ? err.message : '가입에 실패했습니다.'
@@ -134,23 +130,19 @@ export function StudentRegisterPage() {
               required
             />
             <Input
-              label="PIN 번호"
+              label="비밀번호"
               type="password"
-              placeholder="4~6자리 숫자"
-              value={form.pin}
-              onChange={(e) => updateForm('pin', e.target.value.replace(/\D/g, ''))}
-              maxLength={6}
-              inputMode="numeric"
+              placeholder="4자리 이상 (영문, 숫자, 특수문자 가능)"
+              value={form.password}
+              onChange={(e) => updateForm('password', e.target.value)}
               required
             />
             <Input
-              label="PIN 번호 확인"
+              label="비밀번호 확인"
               type="password"
-              placeholder="PIN을 다시 입력하세요"
-              value={form.pinConfirm}
-              onChange={(e) => updateForm('pinConfirm', e.target.value.replace(/\D/g, ''))}
-              maxLength={6}
-              inputMode="numeric"
+              placeholder="비밀번호를 다시 입력하세요"
+              value={form.passwordConfirm}
+              onChange={(e) => updateForm('passwordConfirm', e.target.value)}
               required
             />
 
@@ -158,22 +150,11 @@ export function StudentRegisterPage() {
               <label className="block text-sm font-medium text-text-primary mb-2">
                 아바타 선택
               </label>
-              <div className="grid grid-cols-8 gap-2">
-                {AVATAR_OPTIONS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    type="button"
-                    onClick={() => updateForm('avatar', emoji)}
-                    className={`text-2xl p-1.5 rounded-xl transition-all ${
-                      form.avatar === emoji
-                        ? 'bg-primary-100 ring-2 ring-primary-500 scale-110'
-                        : 'hover:bg-surface-tertiary'
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
+              <EmojiAvatarPicker
+                value={form.avatar}
+                onChange={(emoji) => updateForm('avatar', emoji)}
+                size="sm"
+              />
             </div>
 
             <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>

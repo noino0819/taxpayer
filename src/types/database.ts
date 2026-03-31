@@ -26,8 +26,9 @@ export interface User {
   email: string | null
   name: string
   role: UserRole
-  pin: string | null
+  password: string | null
   avatar_preset_id: string | null
+  must_change_password: boolean
   created_at: string
 }
 

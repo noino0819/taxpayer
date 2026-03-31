@@ -23,6 +23,7 @@ const EconomyPage = lazy(() => import('@/pages/teacher/EconomyPage').then(m => (
 const SettingsPage = lazy(() => import('@/pages/teacher/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const TaxManagePage = lazy(() => import('@/pages/teacher/TaxManagePage').then(m => ({ default: m.TaxManagePage })))
 
+const ChangePasswordPage = lazy(() => import('@/pages/student/ChangePasswordPage').then(m => ({ default: m.ChangePasswordPage })))
 const HomePage = lazy(() => import('@/pages/student/HomePage').then(m => ({ default: m.HomePage })))
 const BankbookPage = lazy(() => import('@/pages/student/BankbookPage').then(m => ({ default: m.BankbookPage })))
 const JobsPage = lazy(() => import('@/pages/student/JobsPage').then(m => ({ default: m.JobsPage })))
@@ -115,6 +116,15 @@ export default function App() {
               <Route path="tax" element={<TaxManagePage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
+
+            <Route
+              path="/student/change-password"
+              element={
+                <ProtectedRoute role="student">
+                  <ChangePasswordPage />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/student"

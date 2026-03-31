@@ -17,7 +17,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [studentName, setStudentName] = useState('')
-  const [pin, setPin] = useState('')
+  const [studentPassword, setStudentPassword] = useState('')
   const [inviteCode, setInviteCode] = useState(searchParams.get('code')?.toUpperCase() || '')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
@@ -58,11 +58,16 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      const user = await signInStudent(studentName, inviteCode, pin)
+      const user = await signInStudent(studentName, inviteCode, studentPassword)
       setUser(user)
 
       const classroom = await getClassroomByInviteCode(inviteCode)
       setCurrentClassroom(classroom)
+
+      if (user.must_change_password) {
+        navigate('/student/change-password')
+        return
+      }
 
       toast.success(`${user.name}님, 환영합니다!`)
       navigate('/student')
@@ -175,13 +180,11 @@ export function LoginPage() {
                   required
                 />
                 <Input
-                  label="PIN 번호"
+                  label="비밀번호"
                   type="password"
-                  placeholder="4~6자리 숫자"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                  maxLength={6}
-                  inputMode="numeric"
+                  placeholder="비밀번호를 입력하세요"
+                  value={studentPassword}
+                  onChange={(e) => setStudentPassword(e.target.value)}
                   required
                 />
                 <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>

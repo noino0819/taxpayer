@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/common/Card'
@@ -34,8 +35,14 @@ const item = {
 
 export function HomePage() {
   const navigate = useNavigate()
-  const { currentClassroom } = useAuthStore()
+  const { user, currentClassroom } = useAuthStore()
   const currency = currentClassroom?.currency_name || '미소'
+
+  useEffect(() => {
+    if (user?.must_change_password) {
+      navigate('/student/change-password', { replace: true })
+    }
+  }, [user?.must_change_password, navigate])
 
   const { data: account } = useMyAccount()
   const { data: transactions } = useMyTransactions(5)
