@@ -1,11 +1,17 @@
 import { supabase } from '@/lib/supabase'
-import type { User, PrivacyConsent } from '@/types/database'
+import type { User, PrivacyConsent, PolicyDocument } from '@/types/database'
+import { getCurrentPolicies } from '@/lib/api/policies'
 
-export async function recordPrivacyConsent(userId: string) {
-  const consents = [
-    { user_id: userId, consent_type: 'privacy_policy', version: '1.0', consented: true },
-    { user_id: userId, consent_type: 'terms_of_service', version: '1.0', consented: true },
-  ]
+export async function recordPrivacyConsent(userId: string, policyDocs?: PolicyDocument[]) {
+  const docs = policyDocs ?? await getCurrentPolicies()
+  const consents = docs.map((doc) => ({
+    user_id: userId,
+    consent_type: doc.type,
+    version: doc.version,
+    consented: true,
+    policy_document_id: doc.id,
+  }))
+  if (consents.length === 0) return
   const { error } = await supabase.from('privacy_consents').insert(consents)
   if (error) throw error
 }
@@ -252,22 +258,47 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
+async function logAccountDeletion(userId: string, role: string, dataSummary: Record<string, unknown>) {
+  await supabase.from('account_deletion_logs').insert({
+    original_user_id: userId,
+    role,
+    deletion_reason: 'user_request',
+    deleted_data_summary: dataSummary,
+  })
+}
+
 export async function deleteTeacherAccount(userId: string) {
+  const { data: user } = await supabase
+    .from('users')
+    .select('name, email')
+    .eq('id', userId)
+    .single()
+
   const { data: classrooms } = await supabase
     .from('classrooms')
-    .select('id')
+    .select('id, name')
     .eq('teacher_id', userId)
+
+  let studentCount = 0
+  const classroomNames: string[] = []
 
   if (classrooms && classrooms.length > 0) {
     for (const classroom of classrooms) {
+      classroomNames.push(classroom.name)
       const { data: members } = await supabase
         .from('memberships')
         .select('user_id')
         .eq('classroom_id', classroom.id)
 
       if (members) {
+        studentCount += members.length
         for (const member of members) {
           await supabase.from('accounts').delete().eq('user_id', member.user_id).eq('classroom_id', classroom.id)
+          await supabase.from('job_assignments').delete().eq('user_id', member.user_id)
+          await supabase.from('stock_transactions').delete().eq('user_id', member.user_id)
+          await supabase.from('insurance_contracts').delete().eq('user_id', member.user_id)
+          await supabase.from('savings_accounts').delete().eq('user_id', member.user_id)
+          await supabase.from('privacy_consents').delete().eq('user_id', member.user_id)
         }
         const studentIds = members.map((m) => m.user_id)
         if (studentIds.length > 0) {
@@ -280,19 +311,46 @@ export async function deleteTeacherAccount(userId: string) {
     }
   }
 
+  await logAccountDeletion(userId, 'teacher', {
+    deleted_at_iso: new Date().toISOString(),
+    had_classrooms: classroomNames,
+    student_count: studentCount,
+  })
+
   await supabase.from('privacy_consents').delete().eq('user_id', userId)
   await supabase.from('users').delete().eq('id', userId)
   await supabase.auth.signOut()
 }
 
 export async function deleteStudentAccount(userId: string, classroomId: string) {
+  const { data: user } = await supabase
+    .from('users')
+    .select('name')
+    .eq('id', userId)
+    .single()
+
+  const { data: account } = await supabase
+    .from('accounts')
+    .select('balance')
+    .eq('user_id', userId)
+    .eq('classroom_id', classroomId)
+    .maybeSingle()
+
   await supabase.from('accounts').delete().eq('user_id', userId).eq('classroom_id', classroomId)
   await supabase.from('memberships').delete().eq('user_id', userId).eq('classroom_id', classroomId)
   await supabase.from('job_assignments').delete().eq('user_id', userId)
   await supabase.from('stock_transactions').delete().eq('user_id', userId)
   await supabase.from('insurance_contracts').delete().eq('user_id', userId)
   await supabase.from('savings_accounts').delete().eq('user_id', userId)
+  await supabase.from('notifications').delete().eq('user_id', userId)
+  await supabase.from('fines').delete().eq('offender_id', userId)
   await supabase.from('privacy_consents').delete().eq('user_id', userId)
+
+  await logAccountDeletion(userId, 'student', {
+    deleted_at_iso: new Date().toISOString(),
+    classroom_id: classroomId,
+    had_balance: account?.balance ?? 0,
+  })
 
   const { data: otherMemberships } = await supabase
     .from('memberships')

@@ -1,9 +1,12 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import toast, { Toaster, ToastBar } from 'react-hot-toast'
 import { useAuthStore } from '@/stores/authStore'
 import { InstallPrompt, IOSInstallGuide } from '@/components/common/InstallPrompt'
+import { ReconsentModal } from '@/components/common/ReconsentModal'
+import { checkNeedsReconsent } from '@/lib/api/policies'
+import type { PolicyDocument } from '@/types/database'
 
 import { TeacherLayout } from '@/components/layout/TeacherLayout'
 import { StudentLayout } from '@/components/layout/StudentLayout'
@@ -68,6 +71,39 @@ function ProtectedRoute({ children, role }: { children: React.ReactNode; role: '
   if (user.role !== role) return <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />
 
   return <>{children}</>
+}
+
+function ReconsentChecker() {
+  const { user, logout } = useAuthStore()
+  const [pendingPolicies, setPendingPolicies] = useState<PolicyDocument[]>([])
+
+  useEffect(() => {
+    if (!user) { setPendingPolicies([]); return }
+    checkNeedsReconsent(user.id)
+      .then((policies) => setPendingPolicies(policies))
+      .catch(() => {})
+  }, [user])
+
+  const handleComplete = useCallback(() => {
+    setPendingPolicies([])
+  }, [])
+
+  const handleRefuse = useCallback(() => {
+    logout()
+    setPendingPolicies([])
+  }, [logout])
+
+  if (!user || pendingPolicies.length === 0) return null
+
+  return (
+    <ReconsentModal
+      isOpen
+      policies={pendingPolicies}
+      userId={user.id}
+      onComplete={handleComplete}
+      onRefuse={handleRefuse}
+    />
+  )
 }
 
 export default function App() {
@@ -154,6 +190,7 @@ export default function App() {
         </Suspense>
       </BrowserRouter>
 
+      <ReconsentChecker />
       <InstallPrompt />
       <IOSInstallGuide />
 

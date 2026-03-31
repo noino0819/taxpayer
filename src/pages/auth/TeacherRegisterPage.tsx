@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
@@ -9,6 +9,8 @@ import { useAuthStore } from '@/stores/authStore'
 import { signUpTeacher } from '@/lib/api/auth'
 import { createClassroom } from '@/lib/api/classrooms'
 import { seedClassroomData } from '@/lib/api/seed'
+import { getCurrentPolicies } from '@/lib/api/policies'
+import type { PolicyDocument } from '@/types/database'
 import toast from 'react-hot-toast'
 
 export function TeacherRegisterPage() {
@@ -17,7 +19,8 @@ export function TeacherRegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [privacyAgreed, setPrivacyAgreed] = useState(false)
   const [termsAgreed, setTermsAgreed] = useState(false)
-  const [showPrivacyModal, setShowPrivacyModal] = useState<'privacy' | 'terms' | null>(null)
+  const [showPolicy, setShowPolicy] = useState<PolicyDocument | null>(null)
+  const [policies, setPolicies] = useState<PolicyDocument[]>([])
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -27,6 +30,13 @@ export function TeacherRegisterPage() {
     grade: '',
     classNum: '',
   })
+
+  useEffect(() => {
+    getCurrentPolicies().then(setPolicies).catch(() => {})
+  }, [])
+
+  const privacyPolicy = policies.find((p) => p.type === 'privacy_policy')
+  const termsPolicy = policies.find((p) => p.type === 'terms_of_service')
 
   const updateForm = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -81,7 +91,7 @@ export function TeacherRegisterPage() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold">👨‍🏫 교사 회원가입</h1>
+          <h1 className="text-2xl font-bold">교사 회원가입</h1>
           <p className="text-text-secondary text-sm mt-1">학급 화폐 경제 교육을 시작하세요</p>
         </div>
 
@@ -137,7 +147,7 @@ export function TeacherRegisterPage() {
                   <Input
                     label="학년"
                     type="number"
-                    placeholder="힉년을 입력해주세요"
+                    placeholder="학년을 입력해주세요"
                     min={1}
                     max={6}
                     value={form.grade}
@@ -166,12 +176,15 @@ export function TeacherRegisterPage() {
                 <span className="text-sm text-text-secondary leading-snug">
                   <button
                     type="button"
-                    onClick={() => setShowPrivacyModal('privacy')}
+                    onClick={() => privacyPolicy && setShowPolicy(privacyPolicy)}
                     className="text-primary-500 hover:underline font-medium"
                   >
                     개인정보 수집·이용
                   </button>
                   에 동의합니다. <span className="text-danger-500">(필수)</span>
+                  {privacyPolicy && (
+                    <span className="text-text-tertiary text-xs ml-1">v{privacyPolicy.version}</span>
+                  )}
                 </span>
               </label>
               <label className="flex items-start gap-2.5 cursor-pointer group">
@@ -184,12 +197,15 @@ export function TeacherRegisterPage() {
                 <span className="text-sm text-text-secondary leading-snug">
                   <button
                     type="button"
-                    onClick={() => setShowPrivacyModal('terms')}
+                    onClick={() => termsPolicy && setShowPolicy(termsPolicy)}
                     className="text-primary-500 hover:underline font-medium"
                   >
                     서비스 이용약관
                   </button>
                   에 동의합니다. <span className="text-danger-500">(필수)</span>
+                  {termsPolicy && (
+                    <span className="text-text-tertiary text-xs ml-1">v{termsPolicy.version}</span>
+                  )}
                 </span>
               </label>
             </div>
@@ -209,9 +225,9 @@ export function TeacherRegisterPage() {
       </motion.div>
 
       <PrivacyConsentModal
-        isOpen={showPrivacyModal !== null}
-        onClose={() => setShowPrivacyModal(null)}
-        type={showPrivacyModal ?? 'privacy'}
+        isOpen={showPolicy !== null}
+        onClose={() => setShowPolicy(null)}
+        policy={showPolicy}
       />
     </div>
   )

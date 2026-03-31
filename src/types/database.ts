@@ -285,16 +285,42 @@ export interface AvatarPreset {
   sort_order: number
 }
 
+export type PolicyType = 'privacy_policy' | 'terms_of_service'
+
+export interface PolicyDocument {
+  id: string
+  type: PolicyType
+  version: string
+  title: string
+  content: string
+  summary: string | null
+  effective_date: string
+  is_current: boolean
+  created_at: string
+  created_by: string | null
+}
+
 export interface PrivacyConsent {
   id: string
   user_id: string
-  consent_type: 'privacy_policy' | 'terms_of_service'
+  consent_type: PolicyType
   version: string
   consented: boolean
   consented_at: string
   ip_address: string | null
   user_agent: string | null
   withdrawn_at: string | null
+  policy_document_id: string | null
+}
+
+export interface AccountDeletionLog {
+  id: string
+  original_user_id: string
+  role: string
+  deletion_reason: string
+  deleted_data_summary: Record<string, unknown>
+  deleted_at: string
+  retention_until: string
 }
 
 export type ModuleName =

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/common/Button'
@@ -6,6 +6,8 @@ import { Input } from '@/components/common/Input'
 import { EmojiAvatarPicker } from '@/components/common/EmojiAvatarPicker'
 import { PrivacyConsentModal } from '@/components/common/PrivacyConsentModal'
 import { signUpStudent } from '@/lib/api/auth'
+import { getCurrentPolicies } from '@/lib/api/policies'
+import type { PolicyDocument } from '@/types/database'
 import toast from 'react-hot-toast'
 
 export function StudentRegisterPage() {
@@ -15,7 +17,8 @@ export function StudentRegisterPage() {
   const [done, setDone] = useState(false)
   const [privacyAgreed, setPrivacyAgreed] = useState(false)
   const [termsAgreed, setTermsAgreed] = useState(false)
-  const [showPrivacyModal, setShowPrivacyModal] = useState<'privacy' | 'terms' | null>(null)
+  const [showPolicy, setShowPolicy] = useState<PolicyDocument | null>(null)
+  const [policies, setPolicies] = useState<PolicyDocument[]>([])
   const [form, setForm] = useState({
     loginId: '',
     name: '',
@@ -25,22 +28,19 @@ export function StudentRegisterPage() {
     avatar: '😊',
   })
 
+  useEffect(() => {
+    getCurrentPolicies().then(setPolicies).catch(() => {})
+  }, [])
+
+  const privacyPolicy = policies.find((p) => p.type === 'privacy_policy')
+  const termsPolicy = policies.find((p) => p.type === 'terms_of_service')
+
   const updateForm = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (form.loginId.length < 2) {
-      toast.error('아이디는 2자 이상이어야 합니다.')
-      return
-    }
-
-    if (!/^[a-zA-Z0-9가-힣]+$/.test(form.loginId)) {
-      toast.error('아이디는 한글, 영문, 숫자만 사용할 수 있습니다.')
-      return
-    }
 
     if (form.password.length < 4) {
       toast.error('비밀번호는 4자리 이상이어야 합니다.')
@@ -143,17 +143,17 @@ export function StudentRegisterPage() {
               required
             />
             <Input
-              label="아이디"
-              placeholder="로그인에 사용할 아이디 (한글, 영문, 숫자)"
-              value={form.loginId}
-              onChange={(e) => updateForm('loginId', e.target.value)}
-              required
-            />
-            <Input
               label="이름"
               placeholder="본인 이름을 입력하세요"
               value={form.name}
               onChange={(e) => updateForm('name', e.target.value)}
+              required
+            />
+            <Input
+              label="아이디"
+              placeholder="로그인에 사용할 아이디"
+              value={form.loginId}
+              onChange={(e) => updateForm('loginId', e.target.value)}
               required
             />
             <Input
@@ -195,12 +195,15 @@ export function StudentRegisterPage() {
                 <span className="text-sm text-text-secondary leading-snug">
                   <button
                     type="button"
-                    onClick={() => setShowPrivacyModal('privacy')}
+                    onClick={() => privacyPolicy && setShowPolicy(privacyPolicy)}
                     className="text-primary-500 hover:underline font-medium"
                   >
                     개인정보 수집·이용
                   </button>
                   에 동의합니다. <span className="text-danger-500">(필수)</span>
+                  {privacyPolicy && (
+                    <span className="text-text-tertiary text-xs ml-1">v{privacyPolicy.version}</span>
+                  )}
                 </span>
               </label>
               <label className="flex items-start gap-2.5 cursor-pointer group">
@@ -213,12 +216,15 @@ export function StudentRegisterPage() {
                 <span className="text-sm text-text-secondary leading-snug">
                   <button
                     type="button"
-                    onClick={() => setShowPrivacyModal('terms')}
+                    onClick={() => termsPolicy && setShowPolicy(termsPolicy)}
                     className="text-primary-500 hover:underline font-medium"
                   >
                     서비스 이용약관
                   </button>
                   에 동의합니다. <span className="text-danger-500">(필수)</span>
+                  {termsPolicy && (
+                    <span className="text-text-tertiary text-xs ml-1">v{termsPolicy.version}</span>
+                  )}
                 </span>
               </label>
             </div>
@@ -238,9 +244,9 @@ export function StudentRegisterPage() {
       </motion.div>
 
       <PrivacyConsentModal
-        isOpen={showPrivacyModal !== null}
-        onClose={() => setShowPrivacyModal(null)}
-        type={showPrivacyModal ?? 'privacy'}
+        isOpen={showPolicy !== null}
+        onClose={() => setShowPolicy(null)}
+        policy={showPolicy}
       />
     </div>
   )
