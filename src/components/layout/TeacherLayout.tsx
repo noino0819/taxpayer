@@ -9,6 +9,7 @@ import {
   HiOutlineArrowRightOnRectangle,
   HiOutlineBellAlert,
   HiOutlineChartBar,
+  HiOutlineReceiptPercent,
 } from 'react-icons/hi2'
 
 const navItems = [
@@ -16,6 +17,7 @@ const navItems = [
   { to: '/teacher/students', icon: HiOutlineUserGroup, label: '학생 관리' },
   { to: '/teacher/jobs', icon: HiOutlineBriefcase, label: '직업 관리' },
   { to: '/teacher/bankbook', icon: HiOutlineBanknotes, label: '통장 관리' },
+  { to: '/teacher/tax', icon: HiOutlineReceiptPercent, label: '세금/벌금' },
   { to: '/teacher/economy', icon: HiOutlineChartBar, label: '경제 현황' },
   { to: '/teacher/notifications', icon: HiOutlineBellAlert, label: '알림' },
   { to: '/teacher/settings', icon: HiOutlineCog6Tooth, label: '학급 설정' },

@@ -22,6 +22,12 @@ import { BankbookPage } from '@/pages/student/BankbookPage'
 import { JobsPage } from '@/pages/student/JobsPage'
 import { MartPage } from '@/pages/student/MartPage'
 import { MorePage } from '@/pages/student/MorePage'
+import { BankPage } from '@/pages/student/BankPage'
+import { CreditPage } from '@/pages/student/CreditPage'
+import { RealEstatePage } from '@/pages/student/RealEstatePage'
+import { InvestmentPage } from '@/pages/student/InvestmentPage'
+import { InsurancePage } from '@/pages/student/InsurancePage'
+import { TaxManagePage } from '@/pages/teacher/TaxManagePage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +82,7 @@ export default function App() {
             <Route path="bankbook" element={<BankbookManagePage />} />
             <Route path="economy" element={<EconomyPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="tax" element={<TaxManagePage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
 
@@ -91,6 +98,11 @@ export default function App() {
             <Route path="bankbook" element={<BankbookPage />} />
             <Route path="jobs" element={<JobsPage />} />
             <Route path="mart" element={<MartPage />} />
+            <Route path="bank" element={<BankPage />} />
+            <Route path="credit" element={<CreditPage />} />
+            <Route path="real-estate" element={<RealEstatePage />} />
+            <Route path="investment" element={<InvestmentPage />} />
+            <Route path="insurance" element={<InsurancePage />} />
             <Route path="more" element={<MorePage />} />
           </Route>
 
