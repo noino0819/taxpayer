@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'react-hot-toast'
+import toast, { Toaster, ToastBar } from 'react-hot-toast'
 import { useAuthStore } from '@/stores/authStore'
 import { InstallPrompt, IOSInstallGuide } from '@/components/common/InstallPrompt'
 
@@ -155,6 +155,7 @@ export default function App() {
             fontSize: '14px',
             fontWeight: 500,
             maxWidth: '90vw',
+            cursor: 'pointer',
           },
           success: {
             iconTheme: { primary: '#22C55E', secondary: '#fff' },
@@ -163,7 +164,21 @@ export default function App() {
             iconTheme: { primary: '#EF4444', secondary: '#fff' },
           },
         }}
-      />
+      >
+        {(t) => (
+          <ToastBar toast={t} style={t.style}>
+            {({ icon, message }) => (
+              <div
+                className="flex items-center gap-2 w-full"
+                onClick={() => toast.dismiss(t.id)}
+              >
+                {icon}
+                {message}
+              </div>
+            )}
+          </ToastBar>
+        )}
+      </Toaster>
     </QueryClientProvider>
   )
 }
