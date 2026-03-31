@@ -116,11 +116,11 @@ async function seedInsuranceProducts(classroomId: string) {
 
 async function seedStocks(classroomId: string) {
   const stocks = [
-    { name: '우리반 주식회사', current_price: 100, description: '학급 전체 분위기와 연동', factor_type: 'attendance' },
-    { name: '급식 주식회사', current_price: 80, description: '급식 만족도와 연동', factor_type: 'satisfaction' },
-    { name: '청소 주식회사', current_price: 60, description: '교실 청소 상태와 연동', factor_type: 'cleanliness' },
-    { name: '독서 주식회사', current_price: 50, description: '학급 독서량과 연동', factor_type: 'reading' },
-    { name: '체육 주식회사', current_price: 70, description: '체육 활동 성적과 연동', factor_type: 'sports' },
+    { name: '우리반 주식회사', current_price: 100, description: '학급 전체 분위기와 연동', factor_type: 'attendance', price_impact_rate: 0.010, max_price_impact: 0.10 },
+    { name: '급식 주식회사', current_price: 80, description: '급식 만족도와 연동', factor_type: 'satisfaction', price_impact_rate: 0.015, max_price_impact: 0.15 },
+    { name: '청소 주식회사', current_price: 60, description: '교실 청소 상태와 연동', factor_type: 'cleanliness', price_impact_rate: 0.025, max_price_impact: 0.20 },
+    { name: '독서 주식회사', current_price: 50, description: '학급 독서량과 연동', factor_type: 'reading', price_impact_rate: 0.010, max_price_impact: 0.10 },
+    { name: '체육 주식회사', current_price: 70, description: '체육 활동 성적과 연동', factor_type: 'sports', price_impact_rate: 0.020, max_price_impact: 0.15 },
   ].map((s) => ({
     ...s,
     classroom_id: classroomId,

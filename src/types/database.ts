@@ -150,6 +150,8 @@ export interface Stock {
   description: string
   factor_type: string
   is_active: boolean
+  price_impact_rate: number
+  max_price_impact: number
   created_at: string
 }
 
@@ -161,6 +163,41 @@ export interface StockTransaction {
   quantity: number
   price: number
   created_at: string
+}
+
+export interface StockPriceHistory {
+  id: string
+  stock_id: string
+  price: number
+  previous_price: number
+  change_reason: 'manual' | 'random' | 'event'
+  event_id: string | null
+  created_at: string
+}
+
+export type EconomyEventType = 'auto' | 'scheduled' | 'random'
+export type EconomyEventStatus = 'pending' | 'approved' | 'executed' | 'cancelled'
+
+export interface EconomyEvent {
+  id: string
+  classroom_id: string
+  type: EconomyEventType
+  title: string
+  description: string
+  effects_json: {
+    stocks?: Record<string, number>
+  }
+  trigger_date: string | null
+  status: EconomyEventStatus
+  executed_at: string | null
+  created_at: string
+}
+
+export interface StockEventPreset {
+  title: string
+  description: string
+  effects: Record<string, number>
+  type: 'positive' | 'negative' | 'mixed'
 }
 
 export interface Insurance {

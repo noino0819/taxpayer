@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
@@ -11,6 +11,7 @@ import {
   useAccountStats,
   useStocks,
   useSetStockPrice,
+  useUpdateStockSettings,
   useCloseMarketDay,
 } from '@/hooks/useQueries'
 import {
@@ -21,16 +22,36 @@ import {
 import toast from 'react-hot-toast'
 import type { Stock } from '@/types/database'
 
+const IMPACT_PRESETS = [
+  { label: '안정형', impact: 0.005, max: 0.08, desc: '대형 우량주처럼 느린 변동' },
+  { label: '보통', impact: 0.015, max: 0.15, desc: '일반적인 주식 수준 (기본값)' },
+  { label: '변동형', impact: 0.03, max: 0.25, desc: '소형주처럼 빠른 변동' },
+  { label: '고위험', impact: 0.05, max: 0.30, desc: '급등·급락 가능 (상한가 30%)' },
+]
+
 export function EconomyPage() {
   const { currentClassroom } = useAuthStore()
   const currency = currentClassroom?.currency_name || '미소'
   const { data: stats } = useAccountStats()
   const { data: stocks } = useStocks()
   const setStockPriceMutation = useSetStockPrice()
+  const updateSettingsMutation = useUpdateStockSettings()
   const closeMarketMutation = useCloseMarketDay()
 
   const [editingStock, setEditingStock] = useState<Stock | null>(null)
   const [newPrice, setNewPrice] = useState('')
+  const [impactRate, setImpactRate] = useState('')
+  const [maxImpact, setMaxImpact] = useState('')
+  const [activeTab, setActiveTab] = useState<'price' | 'settings'>('price')
+
+  useEffect(() => {
+    if (editingStock) {
+      setNewPrice(String(editingStock.current_price))
+      setImpactRate(String((editingStock.price_impact_rate * 100).toFixed(1)))
+      setMaxImpact(String((editingStock.max_price_impact * 100).toFixed(0)))
+      setActiveTab('price')
+    }
+  }, [editingStock])
 
   const avgStockPrice = stocks && stocks.length > 0
     ? Math.round(stocks.reduce((s, st) => s + st.current_price, 0) / stocks.length)
@@ -52,11 +73,35 @@ export function EconomyPage() {
     try {
       await setStockPriceMutation.mutateAsync({ stockId: editingStock.id, newPrice: price })
       toast.success(`${editingStock.name} 가격을 ${price}${currency}(으)로 변경했습니다.`)
-      setEditingStock(null)
-      setNewPrice('')
+      closeModal()
     } catch {
       toast.error('가격 변경에 실패했습니다.')
     }
+  }
+
+  const handleSaveSettings = async () => {
+    if (!editingStock) return
+    const rate = Number(impactRate) / 100
+    const max = Number(maxImpact) / 100
+    if (rate < 0 || rate > 1 || max < 0 || max > 1) {
+      toast.error('올바른 비율을 입력해주세요.')
+      return
+    }
+    try {
+      await updateSettingsMutation.mutateAsync({
+        stockId: editingStock.id,
+        settings: { price_impact_rate: rate, max_price_impact: max },
+      })
+      toast.success(`${editingStock.name} 변동 설정이 저장되었습니다.`)
+      closeModal()
+    } catch {
+      toast.error('설정 저장에 실패했습니다.')
+    }
+  }
+
+  const applyPreset = (preset: (typeof IMPACT_PRESETS)[number]) => {
+    setImpactRate(String((preset.impact * 100).toFixed(1)))
+    setMaxImpact(String((preset.max * 100).toFixed(0)))
   }
 
   const handleCloseMarket = async () => {
@@ -66,6 +111,13 @@ export function EconomyPage() {
     } catch {
       toast.error('마감 처리에 실패했습니다.')
     }
+  }
+
+  const closeModal = () => {
+    setEditingStock(null)
+    setNewPrice('')
+    setImpactRate('')
+    setMaxImpact('')
   }
 
   return (
@@ -130,8 +182,7 @@ export function EconomyPage() {
           </Button>
         </div>
         <p className="text-xs text-text-tertiary mb-4">
-          학생이 매수하면 가격이 오르고, 매도하면 내립니다. 종목을 클릭해서 교사가 직접 가격을 조정할 수도 있습니다.
-          &lsquo;하루 마감&rsquo; 버튼을 누르면 등락률이 초기화됩니다.
+          학생이 매수하면 가격이 오르고, 매도하면 내립니다. 종목을 클릭하면 가격 조정 및 변동률 설정을 할 수 있습니다.
         </p>
         {(!stocks || stocks.length === 0) ? (
           <p className="text-text-tertiary text-sm text-center py-4">주식 종목이 없습니다.</p>
@@ -142,13 +193,13 @@ export function EconomyPage() {
               const changePercent = stock.previous_price > 0
                 ? ((change / stock.previous_price) * 100).toFixed(1)
                 : '0.0'
+              const presetMatch = IMPACT_PRESETS.find(
+                (p) => Math.abs(p.impact - stock.price_impact_rate) < 0.001,
+              )
               return (
                 <div
                   key={stock.id}
-                  onClick={() => {
-                    setEditingStock(stock)
-                    setNewPrice(String(stock.current_price))
-                  }}
+                  onClick={() => setEditingStock(stock)}
                   className="flex items-center justify-between p-3 rounded-xl border border-border-light hover:bg-surface-tertiary cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -160,7 +211,14 @@ export function EconomyPage() {
                       {change > 0 ? '▲' : change < 0 ? '▼' : '-'}
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{stock.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm">{stock.name}</p>
+                        {presetMatch && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-tertiary text-text-tertiary">
+                            {presetMatch.label}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-text-tertiary">{stock.description}</p>
                     </div>
                   </div>
@@ -184,45 +242,140 @@ export function EconomyPage() {
 
       <Modal
         isOpen={!!editingStock}
-        onClose={() => { setEditingStock(null); setNewPrice('') }}
-        title="주식 가격 조정"
-        size="sm"
+        onClose={closeModal}
+        title={editingStock?.name ?? '종목 설정'}
+        size="md"
       >
         {editingStock && (
           <div className="space-y-4">
-            <div className="bg-surface-tertiary rounded-xl p-4 text-center">
-              <p className="font-semibold">{editingStock.name}</p>
+            <div className="bg-surface-tertiary rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold">{editingStock.current_price}{currency}</p>
               <p className="text-xs text-text-tertiary mt-1">{editingStock.description}</p>
-              <p className="text-2xl font-bold mt-2">{editingStock.current_price}{currency}</p>
             </div>
-            <Input
-              label={`새 가격 (${currency})`}
-              type="number"
-              placeholder="가격을 입력하세요"
-              value={newPrice}
-              onChange={(e) => setNewPrice(e.target.value)}
-            />
-            {newPrice && Number(newPrice) > 0 && (
-              <p className="text-sm text-text-secondary text-center">
-                {editingStock.current_price} → {newPrice}{currency}
-                {' '}
-                <span className={`font-medium ${
-                  Number(newPrice) > editingStock.current_price ? 'text-accent-600'
-                    : Number(newPrice) < editingStock.current_price ? 'text-danger-500'
-                      : 'text-text-tertiary'
-                }`}>
-                  ({Number(newPrice) >= editingStock.current_price ? '+' : ''}
-                  {(((Number(newPrice) - editingStock.current_price) / editingStock.current_price) * 100).toFixed(1)}%)
-                </span>
-              </p>
+
+            <div className="flex border-b border-border">
+              <button
+                onClick={() => setActiveTab('price')}
+                className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
+                  activeTab === 'price'
+                    ? 'text-primary-600 border-b-2 border-primary-500'
+                    : 'text-text-tertiary hover:text-text-secondary'
+                }`}
+              >
+                가격 조정
+              </button>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
+                  activeTab === 'settings'
+                    ? 'text-primary-600 border-b-2 border-primary-500'
+                    : 'text-text-tertiary hover:text-text-secondary'
+                }`}
+              >
+                변동률 설정
+              </button>
+            </div>
+
+            {activeTab === 'price' ? (
+              <div className="space-y-4">
+                <Input
+                  label={`새 가격 (${currency})`}
+                  type="number"
+                  placeholder="가격을 입력하세요"
+                  value={newPrice}
+                  onChange={(e) => setNewPrice(e.target.value)}
+                />
+                {newPrice && Number(newPrice) > 0 && Number(newPrice) !== editingStock.current_price && (
+                  <p className="text-sm text-text-secondary text-center">
+                    {editingStock.current_price} → {newPrice}{currency}
+                    {' '}
+                    <span className={`font-medium ${
+                      Number(newPrice) > editingStock.current_price ? 'text-accent-600'
+                        : Number(newPrice) < editingStock.current_price ? 'text-danger-500'
+                          : 'text-text-tertiary'
+                    }`}>
+                      ({Number(newPrice) >= editingStock.current_price ? '+' : ''}
+                      {(((Number(newPrice) - editingStock.current_price) / editingStock.current_price) * 100).toFixed(1)}%)
+                    </span>
+                  </p>
+                )}
+                <Button
+                  className="w-full"
+                  onClick={handleSetPrice}
+                  isLoading={setStockPriceMutation.isPending}
+                >
+                  가격 변경
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-text-secondary mb-2">프리셋 선택</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {IMPACT_PRESETS.map((preset) => {
+                      const isActive =
+                        Math.abs(Number(impactRate) - preset.impact * 100) < 0.1 &&
+                        Math.abs(Number(maxImpact) - preset.max * 100) < 1
+                      return (
+                        <button
+                          key={preset.label}
+                          onClick={() => applyPreset(preset)}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            isActive
+                              ? 'border-primary-400 bg-primary-50 ring-1 ring-primary-200'
+                              : 'border-border hover:border-primary-200'
+                          }`}
+                        >
+                          <p className="text-sm font-semibold">{preset.label}</p>
+                          <p className="text-[11px] text-text-tertiary mt-0.5">{preset.desc}</p>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    label="주당 영향률 (%)"
+                    type="number"
+                    placeholder="1.5"
+                    value={impactRate}
+                    onChange={(e) => setImpactRate(e.target.value)}
+                  />
+                  <Input
+                    label="최대 변동 상한 (%)"
+                    type="number"
+                    placeholder="15"
+                    value={maxImpact}
+                    onChange={(e) => setMaxImpact(e.target.value)}
+                  />
+                </div>
+
+                <div className="bg-surface-tertiary rounded-xl p-3">
+                  <p className="text-xs font-medium text-text-secondary mb-1">시뮬레이션</p>
+                  <p className="text-xs text-text-tertiary">
+                    현재가 {editingStock.current_price}{currency} 기준,
+                    1주 매수 시 →{' '}
+                    <span className="font-medium text-accent-600">
+                      {Math.round(editingStock.current_price * (1 + Math.min(Number(impactRate || 0) / 100, Number(maxImpact || 0) / 100)))}{currency}
+                    </span>
+                    {' · '}
+                    5주 매수 시 →{' '}
+                    <span className="font-medium text-accent-600">
+                      {Math.round(editingStock.current_price * (1 + Math.min(5 * Number(impactRate || 0) / 100, Number(maxImpact || 0) / 100)))}{currency}
+                    </span>
+                  </p>
+                </div>
+
+                <Button
+                  className="w-full"
+                  onClick={handleSaveSettings}
+                  isLoading={updateSettingsMutation.isPending}
+                >
+                  설정 저장
+                </Button>
+              </div>
             )}
-            <Button
-              className="w-full"
-              onClick={handleSetPrice}
-              isLoading={setStockPriceMutation.isPending}
-            >
-              가격 변경
-            </Button>
           </div>
         )}
       </Modal>

@@ -470,12 +470,137 @@ export function useSetStockPrice() {
   })
 }
 
+export function useUpdateStockSettings() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { stockId: string; settings: { price_impact_rate?: number; max_price_impact?: number } }) =>
+      api.updateStockSettings(params.stockId, params.settings),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['stocks'] }),
+  })
+}
+
 export function useCloseMarketDay() {
   const qc = useQueryClient()
   const classroomId = useClassroomId()
   return useMutation({
     mutationFn: () => api.closeMarketDay(classroomId!),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['stocks'] }),
+  })
+}
+
+export function useAllStocks() {
+  const classroomId = useClassroomId()
+  return useQuery({
+    queryKey: ['all-stocks', classroomId],
+    queryFn: () => api.getAllStocks(classroomId!),
+    enabled: !!classroomId,
+  })
+}
+
+export function useApplyRandomFluctuation() {
+  const qc = useQueryClient()
+  const classroomId = useClassroomId()
+  return useMutation({
+    mutationFn: (params?: { minPct?: number; maxPct?: number }) =>
+      api.applyRandomFluctuation(classroomId!, params?.minPct, params?.maxPct),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['stocks'] })
+      qc.invalidateQueries({ queryKey: ['all-stocks'] })
+      qc.invalidateQueries({ queryKey: ['stock-price-history'] })
+    },
+  })
+}
+
+export function useStockPriceHistory(stockId: string | undefined) {
+  return useQuery({
+    queryKey: ['stock-price-history', stockId],
+    queryFn: () => api.getStockPriceHistory(stockId!),
+    enabled: !!stockId,
+  })
+}
+
+export function useClassroomPriceHistory() {
+  const classroomId = useClassroomId()
+  return useQuery({
+    queryKey: ['classroom-price-history', classroomId],
+    queryFn: () => api.getClassroomPriceHistory(classroomId!),
+    enabled: !!classroomId,
+  })
+}
+
+export function useAddStock() {
+  const qc = useQueryClient()
+  const classroomId = useClassroomId()
+  return useMutation({
+    mutationFn: (params: { name: string; current_price: number; description: string; factor_type: string }) =>
+      api.addStock(classroomId!, params),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['stocks'] })
+      qc.invalidateQueries({ queryKey: ['all-stocks'] })
+    },
+  })
+}
+
+export function useToggleStock() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (params: { stockId: string; isActive: boolean }) =>
+      api.toggleStock(params.stockId, params.isActive),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['stocks'] })
+      qc.invalidateQueries({ queryKey: ['all-stocks'] })
+    },
+  })
+}
+
+export function useDeleteStock() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (stockId: string) => api.deleteStock(stockId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['stocks'] })
+      qc.invalidateQueries({ queryKey: ['all-stocks'] })
+    },
+  })
+}
+
+export function useEconomyEvents() {
+  const classroomId = useClassroomId()
+  return useQuery({
+    queryKey: ['economy-events', classroomId],
+    queryFn: () => api.getEconomyEvents(classroomId!),
+    enabled: !!classroomId,
+  })
+}
+
+export function useCreateEconomyEvent() {
+  const qc = useQueryClient()
+  const classroomId = useClassroomId()
+  return useMutation({
+    mutationFn: (params: { title: string; description: string; effects: Record<string, number> }) =>
+      api.createEconomyEvent(classroomId!, params),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['economy-events'] }),
+  })
+}
+
+export function useExecuteEconomyEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (eventId: string) => api.executeEconomyEvent(eventId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['economy-events'] })
+      qc.invalidateQueries({ queryKey: ['stocks'] })
+      qc.invalidateQueries({ queryKey: ['all-stocks'] })
+      qc.invalidateQueries({ queryKey: ['stock-price-history'] })
+    },
+  })
+}
+
+export function useCancelEconomyEvent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (eventId: string) => api.cancelEconomyEvent(eventId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['economy-events'] }),
   })
 }
 
