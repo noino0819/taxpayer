@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
 import { Button } from '@/components/common/Button'
@@ -15,6 +15,13 @@ import {
   useCloseMarketDay,
   useStudentStockSummaries,
   useStockTradeSummaries,
+  useSurveys,
+  useCreateSurvey,
+  useSurveyResults,
+  useSetTeacherRating,
+  useCloseSurvey,
+  useApplySurveyToStocks,
+  useDeleteSurvey,
 } from '@/hooks/useQueries'
 import {
   HiOutlineInformationCircle,
@@ -22,10 +29,12 @@ import {
   HiOutlineArrowPath,
 } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
-import type { Stock } from '@/types/database'
+import { STOCK_FACTOR_LABELS } from '@/lib/constants'
+import type { Stock, SatisfactionSurvey, SatisfactionInputMode } from '@/types/database'
 import type { StudentStockSummary, StockTradeSummary } from '@/lib/api/investment'
+import type { SurveyResult } from '@/lib/api/satisfaction'
 
-type PageTab = 'overview' | 'analytics'
+type PageTab = 'overview' | 'analytics' | 'survey'
 
 const IMPACT_PRESETS = [
   { label: '안정형', impact: 0.005, max: 0.08, desc: '대형 우량주처럼 느린 변동', detail: '주당 0.5% 영향, 최대 8% 변동. 삼성전자 같은 대형 우량주처럼 가격이 천천히 움직입니다.' },
@@ -50,23 +59,32 @@ export function EconomyPage() {
         {([
           { key: 'overview' as PageTab, label: '경제 지표 / 주식 관리' },
           { key: 'analytics' as PageTab, label: '투자 현황' },
+          { key: 'survey' as PageTab, label: '만족도 조사' },
         ]).map((t) => (
           <button
             key={t.key}
             onClick={() => setPageTab(t.key)}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+            className={`relative px-4 py-2 rounded-xl text-sm font-bold transition-colors ${
               pageTab === t.key
-                ? 'bg-primary-100 text-primary-700 shadow-sm'
+                ? 'text-primary-700'
                 : 'text-text-secondary hover:bg-surface-tertiary'
             }`}
           >
-            {t.label}
+            {pageTab === t.key && (
+              <motion.div
+                layoutId="economy-tab-bg"
+                className="absolute inset-0 bg-primary-100 rounded-xl shadow-sm"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">{t.label}</span>
           </button>
         ))}
       </div>
 
       {pageTab === 'overview' && <OverviewTab currency={currency} />}
       {pageTab === 'analytics' && <AnalyticsTab currency={currency} />}
+      {pageTab === 'survey' && <SurveyTab />}
     </motion.div>
   )
 }
@@ -298,12 +316,23 @@ function OverviewTab({ currency }: { currency: string }) {
               <p className="text-xs text-text-tertiary mt-1">{editingStock.description}</p>
             </div>
             <div className="flex border-b border-border">
-              <button onClick={() => setActiveTab('price')} className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${activeTab === 'price' ? 'text-primary-600 border-b-2 border-primary-500' : 'text-text-tertiary hover:text-text-secondary'}`}>
-                가격 조정
-              </button>
-              <button onClick={() => setActiveTab('settings')} className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${activeTab === 'settings' ? 'text-primary-600 border-b-2 border-primary-500' : 'text-text-tertiary hover:text-text-secondary'}`}>
-                변동률 설정
-              </button>
+              {(['price', 'settings'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex-1 py-2.5 text-sm font-semibold transition-colors relative ${
+                    activeTab === tab ? 'text-primary-600' : 'text-text-tertiary hover:text-text-secondary'
+                  }`}
+                >
+                  {tab === 'price' ? '가격 조정' : '변동률 설정'}
+                  {activeTab === tab && (
+                    <motion.div
+                      layoutId="stock-modal-tab"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 rounded-full"
+                    />
+                  )}
+                </button>
+              ))}
             </div>
             {activeTab === 'price' ? (
               <div className="space-y-4">
@@ -386,22 +415,24 @@ function AnalyticsTab({ currency }: { currency: string }) {
   return (
     <div className="space-y-6">
       <div className="flex gap-2">
-        <button
-          onClick={() => setView('students')}
-          className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-            view === 'students' ? 'bg-primary-50 text-primary-700' : 'text-text-tertiary hover:bg-surface-tertiary'
-          }`}
-        >
-          학생별 현황
-        </button>
-        <button
-          onClick={() => setView('stocks')}
-          className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-            view === 'stocks' ? 'bg-primary-50 text-primary-700' : 'text-text-tertiary hover:bg-surface-tertiary'
-          }`}
-        >
-          종목별 현황
-        </button>
+        {(['students', 'stocks'] as const).map((key) => (
+          <button
+            key={key}
+            onClick={() => setView(key)}
+            className={`relative px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+              view === key ? 'text-primary-700' : 'text-text-tertiary hover:bg-surface-tertiary'
+            }`}
+          >
+            {view === key && (
+              <motion.div
+                layoutId="analytics-tab-bg"
+                className="absolute inset-0 bg-primary-50 rounded-lg"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">{key === 'students' ? '학생별 현황' : '종목별 현황'}</span>
+          </button>
+        ))}
       </div>
 
       {view === 'students' && (
@@ -538,13 +569,29 @@ function StockTradeCard({ summary: stock, currency, isExpanded, onToggle }: {
               {netVolume > 0 ? '+' : ''}{netVolume}주
             </p>
           </div>
-          <svg className={`w-4 h-4 text-text-tertiary transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <motion.svg
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="w-4 h-4 text-text-tertiary"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          </motion.svg>
         </div>
       </button>
 
+      <AnimatePresence>
       {isExpanded && stock.traders.length > 0 && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          className="overflow-hidden"
+        >
         <div className="border-t border-border/50 px-4 py-3 bg-surface-tertiary/50">
           <div className="grid grid-cols-6 gap-2 px-2 py-1.5 text-xs font-semibold text-text-tertiary">
             <span className="col-span-2">학생</span>
@@ -565,7 +612,9 @@ function StockTradeCard({ summary: stock, currency, isExpanded, onToggle }: {
             </div>
           ))}
         </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }

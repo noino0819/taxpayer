@@ -32,7 +32,7 @@ const menuItems = [
   { label: '투자', to: '/student/investment', icon: HiOutlineChartBarSquare, module: 'investment' as const, emoji: '📈', bg: 'bg-rose-100', color: 'text-rose-600' },
   { label: '보험', to: '/student/insurance', icon: HiOutlineShieldCheck, module: 'insurance' as const, emoji: '🛡️', bg: 'bg-violet-100', color: 'text-violet-600' },
   { label: '부동산', to: '/student/real-estate', icon: HiOutlineHomeModern, module: 'real_estate' as const, emoji: '🏠', bg: 'bg-teal-100', color: 'text-teal-600' },
-  { label: '신용 등급', to: '/student/credit', icon: HiOutlineChartBar, module: 'credit' as const, emoji: '📊', bg: 'bg-blue-100', color: 'text-blue-600' },
+  { label: '신용 등급', to: '/student/credit', icon: HiOutlineChartBar, module: 'credit' as const, emoji: '📊', bg: 'bg-primary-100', color: 'text-primary-600' },
   { label: '성취 배지', to: '/student/achievements', icon: HiOutlineTrophy, module: 'achievement' as const, emoji: '🏆', bg: 'bg-yellow-100', color: 'text-yellow-600' },
   { label: '경제 퀴즈', to: '/student/quiz', icon: HiOutlinePuzzlePiece, module: 'quiz' as const, emoji: '📝', bg: 'bg-green-100', color: 'text-green-600' },
   { label: '학급 게시판', to: '/student/board', icon: HiOutlineNewspaper, module: 'notification' as const, emoji: '📋', bg: 'bg-indigo-100', color: 'text-indigo-600' },

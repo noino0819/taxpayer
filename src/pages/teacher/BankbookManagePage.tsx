@@ -124,7 +124,7 @@ export function BankbookManagePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-blue-100 to-blue-50 border-border/50">
+        <Card className="bg-gradient-to-br from-primary-100 to-primary-50 border-border/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-primary-100 flex items-center justify-center">
               <HiOutlineBanknotes className="w-5 h-5 text-primary-600" />

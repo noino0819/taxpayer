@@ -309,7 +309,7 @@ export function JobsManagePage() {
       </div>
 
       {/* 월급 지급 주기 카드 */}
-      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-border/50">
+      <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-border/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-primary-100 flex items-center justify-center">

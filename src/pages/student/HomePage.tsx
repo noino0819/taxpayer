@@ -16,7 +16,7 @@ import {
 } from 'react-icons/hi2'
 
 const quickActions = [
-  { label: '직업', to: '/student/jobs', icon: HiOutlineBriefcase, bg: 'bg-gradient-to-br from-blue-100 to-blue-50', iconColor: 'text-blue-600' },
+  { label: '직업', to: '/student/jobs', icon: HiOutlineBriefcase, bg: 'bg-gradient-to-br from-primary-100 to-primary-50', iconColor: 'text-primary-600' },
   { label: '마트', to: '/student/mart', icon: HiOutlineShoppingCart, bg: 'bg-gradient-to-br from-emerald-100 to-emerald-50', iconColor: 'text-emerald-600' },
   { label: '은행', to: '/student/bank', icon: HiOutlineBuildingLibrary, bg: 'bg-gradient-to-br from-amber-100 to-amber-50', iconColor: 'text-amber-600' },
   { label: '투자', to: '/student/investment', icon: HiOutlineChartBarSquare, bg: 'bg-gradient-to-br from-rose-100 to-rose-50', iconColor: 'text-rose-600' },

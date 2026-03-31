@@ -43,8 +43,8 @@ export function DashboardPage() {
       label: '전체 학생',
       value: `${stats?.studentCount ?? 0}명`,
       icon: HiOutlineUserGroup,
-      bg: 'bg-gradient-to-br from-blue-100 to-blue-50',
-      iconColor: 'text-blue-600',
+      bg: 'bg-gradient-to-br from-primary-100 to-primary-50',
+      iconColor: 'text-primary-600',
       tooltip: '현재 학급에 참여 중인 학생 수입니다.\n초대 코드를 공유하면 학생이 추가됩니다.',
     },
     {

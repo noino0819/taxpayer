@@ -15,6 +15,7 @@ import { updateModuleSettings } from '@/lib/api/modules'
 import { deleteTeacherAccount } from '@/lib/api/auth'
 import { MODULE_LABELS } from '@/lib/constants'
 import type { ModuleName } from '@/types/database'
+import { Toggle } from '@/components/common/Toggle'
 import { HiOutlineInformationCircle } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
@@ -191,11 +192,17 @@ export function SettingsPage() {
           ))}
         </div>
 
-        <div className="space-y-3">
+        <motion.div
+          className="space-y-3"
+          initial="hidden"
+          animate="visible"
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }}
+        >
           {(Object.entries(MODULE_LABELS) as [ModuleName, typeof MODULE_LABELS[string]][]).map(
             ([key, config]) => (
-              <div
+              <motion.div
                 key={key}
+                variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
                 className="flex items-center justify-between p-3.5 rounded-2xl border border-border/50 hover:bg-surface-tertiary transition-all"
               >
                 <div className="flex-1">
@@ -205,22 +212,11 @@ export function SettingsPage() {
                   </div>
                   <p className="text-xs text-text-tertiary mt-0.5">{config.description}</p>
                 </div>
-                <button
-                  onClick={() => handleToggle(key)}
-                  className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
-                    modules[key] ? 'bg-gradient-to-r from-accent-500 to-accent-400 shadow-[0_2px_6px_rgba(59,130,246,0.3)]' : 'bg-border'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${
-                      modules[key] ? 'left-6' : 'left-1'
-                    }`}
-                  />
-                </button>
-              </div>
+                <Toggle checked={!!modules[key]} onChange={() => handleToggle(key)} />
+              </motion.div>
             ),
           )}
-        </div>
+        </motion.div>
       </Card>
 
       <Card>
@@ -372,16 +368,7 @@ function AutoCloseMarketSettings({ moduleConfigs, classroomId }: { moduleConfigs
             {enabled ? `매일 ${hour}시에 자동 마감됩니다` : '수동으로만 마감합니다'}
           </p>
         </div>
-        <button
-          onClick={() => setEnabled(!enabled)}
-          className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
-            enabled ? 'bg-gradient-to-r from-accent-500 to-accent-400 shadow-[0_2px_6px_rgba(59,130,246,0.3)]' : 'bg-border'
-          }`}
-        >
-          <span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${
-            enabled ? 'left-6' : 'left-1'
-          }`} />
-        </button>
+        <Toggle checked={enabled} onChange={setEnabled} />
       </div>
 
       {enabled && (
