@@ -1,3 +1,5 @@
+export const SUPER_ADMIN_EMAILS = ['noino0819@naver.com'] as const
+
 export const DEFAULT_CURRENCY_NAME = '미소'
 export const DEFAULT_CURRENCY_UNIT = '미소'
 export const DEFAULT_CURRENCY_RATIO = 10000

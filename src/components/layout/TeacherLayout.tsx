@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/stores/authStore'
+import { isSuperAdmin } from '@/lib/superAdmin'
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/hooks/useQueries'
 import { useAutoPaySalaries } from '@/hooks/useAutoPaySalaries'
 import { useAutoCloseMarket } from '@/hooks/useAutoCloseMarket'
@@ -19,6 +20,7 @@ import {
   HiOutlineBellAlert,
   HiOutlineChartBar,
   HiOutlineReceiptPercent,
+  HiOutlineShieldCheck,
   HiBars3,
   HiXMark,
 } from 'react-icons/hi2'
@@ -44,6 +46,7 @@ const typeLabels: Record<string, { label: string; variant: 'danger' | 'primary' 
 
 export function TeacherLayout() {
   const { user, currentClassroom, logout } = useAuthStore()
+  const isAdmin = isSuperAdmin(user)
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [notiDrawerOpen, setNotiDrawerOpen] = useState(false)
@@ -145,6 +148,18 @@ export function TeacherLayout() {
               </span>
             )}
           </button>
+          {isAdmin && (
+            <>
+              <div className="my-2 border-t border-border/50" />
+              <NavLink
+                to="/admin"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-violet-600 bg-violet-50 hover:bg-violet-100"
+              >
+                <HiOutlineShieldCheck className="w-5 h-5 flex-shrink-0" />
+                관리자 패널
+              </NavLink>
+            </>
+          )}
         </nav>
 
         <div className="p-4 border-t border-border/50">
@@ -266,6 +281,19 @@ export function TeacherLayout() {
                     </span>
                   )}
                 </button>
+                {isAdmin && (
+                  <>
+                    <div className="my-2 border-t border-border/50" />
+                    <NavLink
+                      to="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-violet-600 bg-violet-50 hover:bg-violet-100"
+                    >
+                      <HiOutlineShieldCheck className="w-5 h-5 flex-shrink-0" />
+                      관리자 패널
+                    </NavLink>
+                  </>
+                )}
               </nav>
 
               <div className="p-4 border-t border-border/50 safe-bottom">

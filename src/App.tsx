@@ -6,9 +6,11 @@ import { useAuthStore } from '@/stores/authStore'
 import { InstallPrompt, IOSInstallGuide } from '@/components/common/InstallPrompt'
 import { ReconsentModal } from '@/components/common/ReconsentModal'
 import { checkNeedsReconsent } from '@/lib/api/policies'
+import { isSuperAdmin } from '@/lib/superAdmin'
 import type { PolicyDocument } from '@/types/database'
 
 import { TeacherLayout } from '@/components/layout/TeacherLayout'
+import { AdminLayout } from '@/components/layout/AdminLayout'
 import { StudentLayout } from '@/components/layout/StudentLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { TeacherRegisterPage } from '@/pages/auth/TeacherRegisterPage'
@@ -25,6 +27,7 @@ const EconomyPage = lazy(() => import('@/pages/teacher/EconomyPage').then(m => (
 
 const SettingsPage = lazy(() => import('@/pages/teacher/SettingsPage').then(m => ({ default: m.SettingsPage })))
 const TaxManagePage = lazy(() => import('@/pages/teacher/TaxManagePage').then(m => ({ default: m.TaxManagePage })))
+const PolicyManagePage = lazy(() => import('@/pages/admin/PolicyManagePage').then(m => ({ default: m.PolicyManagePage })))
 
 const ChangePasswordPage = lazy(() => import('@/pages/student/ChangePasswordPage').then(m => ({ default: m.ChangePasswordPage })))
 const HomePage = lazy(() => import('@/pages/student/HomePage').then(m => ({ default: m.HomePage })))
@@ -69,6 +72,15 @@ function ProtectedRoute({ children, role }: { children: React.ReactNode; role: '
 
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== role) return <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />
+
+  return <>{children}</>
+}
+
+function SuperAdminRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore()
+
+  if (!user) return <Navigate to="/login" replace />
+  if (!isSuperAdmin(user)) return <Navigate to="/teacher" replace />
 
   return <>{children}</>
 }
@@ -151,6 +163,18 @@ export default function App() {
               <Route path="economy" element={<EconomyPage />} />
               <Route path="tax" element={<TaxManagePage />} />
               <Route path="settings" element={<SettingsPage />} />
+            </Route>
+
+            <Route
+              path="/admin"
+              element={
+                <SuperAdminRoute>
+                  <AdminLayout />
+                </SuperAdminRoute>
+              }
+            >
+              <Route index element={<Navigate to="/admin/policies" replace />} />
+              <Route path="policies" element={<PolicyManagePage />} />
             </Route>
 
             <Route
