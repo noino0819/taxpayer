@@ -45,6 +45,7 @@ export function DashboardPage() {
       icon: HiOutlineUserGroup,
       bg: 'bg-gradient-to-br from-blue-100 to-blue-50',
       iconColor: 'text-blue-600',
+      tooltip: '현재 학급에 참여 중인 학생 수입니다. 초대 코드를 공유하면 학생이 추가됩니다.',
     },
     {
       label: '총 통화량',
@@ -54,6 +55,7 @@ export function DashboardPage() {
       bg: 'bg-gradient-to-br from-emerald-100 to-emerald-50',
       iconColor: 'text-emerald-600',
       extra: `평균: ${stats?.avgBalance ?? 0}${currency}`,
+      tooltip: '학급에 풀린 전체 화폐량입니다. 너무 많으면 인플레이션, 너무 적으면 디플레이션이 발생할 수 있습니다.',
     },
     {
       label: '활성 직업',
@@ -61,6 +63,7 @@ export function DashboardPage() {
       icon: HiOutlineBriefcase,
       bg: 'bg-gradient-to-br from-amber-100 to-amber-50',
       iconColor: 'text-amber-600',
+      tooltip: '현재 학생들에게 배정 가능한 직업 수입니다. 직업 관리 메뉴에서 추가/수정할 수 있습니다.',
     },
     {
       label: '대기 중 벌금',
@@ -69,6 +72,7 @@ export function DashboardPage() {
       bg: 'bg-gradient-to-br from-rose-100 to-rose-50',
       iconColor: 'text-rose-600',
       badge: pendingCount > 0 ? '승인 필요' : undefined,
+      tooltip: '아직 처리되지 않은 벌금 건수입니다. 승인하면 해당 학생의 통장에서 자동 차감됩니다.',
     },
   ]
 
@@ -87,7 +91,14 @@ export function DashboardPage() {
             <Card hover>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-text-secondary font-medium">{card.label}</p>
+                  <p className="text-sm text-text-secondary font-medium inline-flex items-center gap-1">
+                    {card.label}
+                    {card.tooltip && (
+                      <Tooltip content={card.tooltip}>
+                        <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
+                      </Tooltip>
+                    )}
+                  </p>
                   <p className="text-2xl font-extrabold mt-1.5">
                     {card.value}
                     {card.suffix && <span className="text-sm font-semibold text-text-tertiary ml-1">{card.suffix}</span>}
@@ -205,7 +216,12 @@ export function DashboardPage() {
               </div>
 
               <div className="border-t border-border/50 pt-4">
-                <h4 className="text-sm font-bold text-text-secondary mb-2">운영 모드</h4>
+                <h4 className="text-sm font-bold text-text-secondary mb-2 inline-flex items-center gap-1">
+                  운영 모드
+                  <Tooltip content="완전 자동: 실제 경제 지표에 연동되어 자동 운영. 반자동: 자동 운영 + 교사 미세 조정 가능 (추천). 완전 수동: 교사가 모든 매개변수를 직접 관리.">
+                    <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
+                  </Tooltip>
+                </h4>
                 <Badge variant="primary" size="md">
                   {currentClassroom?.economy_mode === 'auto'
                     ? '🤖 완전 자동'

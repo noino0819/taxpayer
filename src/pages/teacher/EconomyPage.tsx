@@ -23,10 +23,10 @@ import toast from 'react-hot-toast'
 import type { Stock } from '@/types/database'
 
 const IMPACT_PRESETS = [
-  { label: '안정형', impact: 0.005, max: 0.08, desc: '대형 우량주처럼 느린 변동' },
-  { label: '보통', impact: 0.015, max: 0.15, desc: '일반적인 주식 수준 (기본값)' },
-  { label: '변동형', impact: 0.03, max: 0.25, desc: '소형주처럼 빠른 변동' },
-  { label: '고위험', impact: 0.05, max: 0.30, desc: '급등·급락 가능 (상한가 30%)' },
+  { label: '안정형', impact: 0.005, max: 0.08, desc: '대형 우량주처럼 느린 변동', detail: '주당 0.5% 영향, 최대 8% 변동. 삼성전자 같은 대형 우량주처럼 가격이 천천히 움직입니다.' },
+  { label: '보통', impact: 0.015, max: 0.15, desc: '일반적인 주식 수준 (기본값)', detail: '주당 1.5% 영향, 최대 15% 변동. 일반적인 주식시장과 비슷한 속도로 변동합니다.' },
+  { label: '변동형', impact: 0.03, max: 0.25, desc: '소형주처럼 빠른 변동', detail: '주당 3% 영향, 최대 25% 변동. 코스닥 소형주처럼 적은 거래에도 가격이 크게 움직입니다.' },
+  { label: '고위험', impact: 0.05, max: 0.30, desc: '급등·급락 가능 (상한가 30%)', detail: '주당 5% 영향, 최대 30% 변동. 한국 증시 상한가/하한가(±30%)와 동일한 수준의 고위험 종목입니다.' },
 ]
 
 export function EconomyPage() {
@@ -129,12 +129,22 @@ export function EconomyPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <p className="text-sm text-text-secondary font-bold">평균 잔액</p>
+          <p className="text-sm text-text-secondary font-bold inline-flex items-center gap-1">
+            평균 잔액
+            <Tooltip content="전체 학생 통장 잔액의 평균입니다. 학급 경제가 활발한지, 학생들이 화폐를 잘 활용하고 있는지 파악하는 기본 지표입니다.">
+              <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
+            </Tooltip>
+          </p>
           <p className="text-2xl font-bold mt-1">{stats?.avgBalance ?? 0}{currency}</p>
           <Badge variant="primary">{stats?.studentCount ?? 0}명</Badge>
         </Card>
         <Card>
-          <p className="text-sm text-text-secondary font-bold">총 통화량</p>
+          <p className="text-sm text-text-secondary font-bold inline-flex items-center gap-1">
+            총 통화량
+            <Tooltip content="학급에 풀린 전체 화폐의 양입니다. 너무 많으면 인플레이션(물가 상승), 너무 적으면 디플레이션(경제 위축)이 발생할 수 있습니다.">
+              <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
+            </Tooltip>
+          </p>
           <p className="text-2xl font-bold mt-1">{(stats?.totalBalance ?? 0).toLocaleString()}{currency}</p>
         </Card>
         <Card>
@@ -170,16 +180,26 @@ export function EconomyPage() {
 
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold">주식 종목 관리</h3>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={<HiOutlineArrowPath className="w-4 h-4" />}
-            onClick={handleCloseMarket}
-            isLoading={closeMarketMutation.isPending}
-          >
-            하루 마감
-          </Button>
+          <h3 className="font-bold inline-flex items-center gap-1.5">
+            주식 종목 관리
+            <Tooltip content="학생들이 매수/매도할 수 있는 주식 종목입니다. 종목을 클릭하면 가격을 직접 조정하거나 변동률 설정을 바꿀 수 있습니다.">
+              <HiOutlineInformationCircle className="w-4 h-4 text-text-tertiary cursor-help" />
+            </Tooltip>
+          </h3>
+          <div className="flex items-center gap-2">
+            <Tooltip content="실제 증시의 '장 마감'과 같습니다. 누르면 현재가가 기준가로 저장되고, 등락률(%)이 0%로 리셋됩니다. 매일 수업 끝에 눌러주세요." position="top">
+              <span><HiOutlineInformationCircle className="w-4 h-4 text-text-tertiary cursor-help" /></span>
+            </Tooltip>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<HiOutlineArrowPath className="w-4 h-4" />}
+              onClick={handleCloseMarket}
+              isLoading={closeMarketMutation.isPending}
+            >
+              하루 마감
+            </Button>
+          </div>
         </div>
         <p className="text-xs text-text-tertiary mb-4">
           학생이 매수하면 가격이 오르고, 매도하면 내립니다. 종목을 클릭하면 가격 조정 및 변동률 설정을 할 수 있습니다.
@@ -196,6 +216,9 @@ export function EconomyPage() {
               const presetMatch = IMPACT_PRESETS.find(
                 (p) => Math.abs(p.impact - stock.price_impact_rate) < 0.001,
               )
+              const settingsDesc = presetMatch
+                ? presetMatch.detail
+                : `주당 ${(stock.price_impact_rate * 100).toFixed(1)}% 영향, 최대 ${(stock.max_price_impact * 100).toFixed(0)}% 변동. 사용자 지정 설정입니다.`
               return (
                 <div
                   key={stock.id}
@@ -213,11 +236,11 @@ export function EconomyPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-sm">{stock.name}</p>
-                        {presetMatch && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-tertiary text-text-tertiary">
-                            {presetMatch.label}
+                        <Tooltip content={settingsDesc}>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-tertiary text-text-tertiary cursor-help">
+                            {presetMatch?.label ?? '사용자 지정'}
                           </span>
-                        )}
+                        </Tooltip>
                       </div>
                       <p className="text-xs text-text-tertiary">{stock.description}</p>
                     </div>
@@ -335,20 +358,34 @@ export function EconomyPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <Input
-                    label="주당 영향률 (%)"
-                    type="number"
-                    placeholder="1.5"
-                    value={impactRate}
-                    onChange={(e) => setImpactRate(e.target.value)}
-                  />
-                  <Input
-                    label="최대 변동 상한 (%)"
-                    type="number"
-                    placeholder="15"
-                    value={maxImpact}
-                    onChange={(e) => setMaxImpact(e.target.value)}
-                  />
+                  <div>
+                    <div className="flex items-center gap-1 mb-1.5">
+                      <label className="text-sm font-semibold text-text-secondary">주당 영향률 (%)</label>
+                      <Tooltip content="학생이 1주를 매수/매도할 때 가격이 변하는 비율입니다. 예: 1.5%면 100원짜리 주식 1주 매수 시 101.5원이 됩니다." position="top">
+                        <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
+                      </Tooltip>
+                    </div>
+                    <Input
+                      type="number"
+                      placeholder="1.5"
+                      value={impactRate}
+                      onChange={(e) => setImpactRate(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1 mb-1.5">
+                      <label className="text-sm font-semibold text-text-secondary">최대 변동 상한 (%)</label>
+                      <Tooltip content="한 번의 거래로 가격이 최대 몇 %까지 변할 수 있는지의 제한입니다. 한국 증시는 상한가/하한가 ±30%입니다." position="top">
+                        <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
+                      </Tooltip>
+                    </div>
+                    <Input
+                      type="number"
+                      placeholder="15"
+                      value={maxImpact}
+                      onChange={(e) => setMaxImpact(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="bg-surface-tertiary rounded-xl p-3">
