@@ -550,7 +550,7 @@ function AutoCloseMarketSettings({ moduleConfigs, classroomId }: { moduleConfigs
     <Card>
       <h3 className="font-bold mb-1 inline-flex items-center gap-1.5">
         주식 시장 자동 마감
-        <Tooltip content="설정된 시간이 되면 자동으로 하루 마감을 실행합니다. 현재가가 전일 종가로 저장되고 등락률이 리셋됩니다. 교사 페이지가 열려있을 때만 동작합니다.">
+        <Tooltip content={"설정된 시간이 되면 자동으로 하루 마감을 실행합니다.\n현재가가 전일 종가로 저장되고 등락률이 리셋됩니다.\n\n※ 교사 페이지가 열려있을 때만 동작합니다."}>
           <HiOutlineInformationCircle className="w-4 h-4 text-text-tertiary cursor-help" />
         </Tooltip>
       </h3>

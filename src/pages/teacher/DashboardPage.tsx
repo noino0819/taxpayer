@@ -45,7 +45,7 @@ export function DashboardPage() {
       icon: HiOutlineUserGroup,
       bg: 'bg-gradient-to-br from-blue-100 to-blue-50',
       iconColor: 'text-blue-600',
-      tooltip: '현재 학급에 참여 중인 학생 수입니다. 초대 코드를 공유하면 학생이 추가됩니다.',
+      tooltip: '현재 학급에 참여 중인 학생 수입니다.\n초대 코드를 공유하면 학생이 추가됩니다.',
     },
     {
       label: '총 통화량',
@@ -55,7 +55,7 @@ export function DashboardPage() {
       bg: 'bg-gradient-to-br from-emerald-100 to-emerald-50',
       iconColor: 'text-emerald-600',
       extra: `평균: ${stats?.avgBalance ?? 0}${currency}`,
-      tooltip: '학급에 풀린 전체 화폐량입니다. 너무 많으면 인플레이션, 너무 적으면 디플레이션이 발생할 수 있습니다.',
+      tooltip: '학급에 풀린 전체 화폐량입니다.\n너무 많으면 인플레이션, 너무 적으면 디플레이션이 발생할 수 있습니다.',
     },
     {
       label: '활성 직업',
@@ -63,7 +63,7 @@ export function DashboardPage() {
       icon: HiOutlineBriefcase,
       bg: 'bg-gradient-to-br from-amber-100 to-amber-50',
       iconColor: 'text-amber-600',
-      tooltip: '현재 학생들에게 배정 가능한 직업 수입니다. 직업 관리 메뉴에서 추가/수정할 수 있습니다.',
+      tooltip: '현재 학생들에게 배정 가능한 직업 수입니다.\n직업 관리 메뉴에서 추가/수정할 수 있습니다.',
     },
     {
       label: '대기 중 벌금',
@@ -72,7 +72,7 @@ export function DashboardPage() {
       bg: 'bg-gradient-to-br from-rose-100 to-rose-50',
       iconColor: 'text-rose-600',
       badge: pendingCount > 0 ? '승인 필요' : undefined,
-      tooltip: '아직 처리되지 않은 벌금 건수입니다. 승인하면 해당 학생의 통장에서 자동 차감됩니다.',
+      tooltip: '아직 처리되지 않은 벌금 건수입니다.\n승인하면 해당 학생의 통장에서 자동 차감됩니다.',
     },
   ]
 
@@ -167,7 +167,7 @@ export function DashboardPage() {
                 <div className="flex justify-between text-sm mb-1.5">
                   <span className="text-text-secondary inline-flex items-center gap-1 font-medium">
                     양극화 지수
-                    <Tooltip content="지니계수는 학급 내 자산 불평등 정도를 0~1 사이 숫자로 나타냅니다. 0에 가까울수록 고르게 분포, 1에 가까울수록 소수에게 편중됩니다.">
+                    <Tooltip content={"지니계수는 학급 내 자산 불평등 정도를\n0~1 사이 숫자로 나타냅니다.\n\n0에 가까울수록 고르게 분포\n1에 가까울수록 소수에게 편중됩니다."}>
                       <HiOutlineInformationCircle className="w-4 h-4 text-text-tertiary cursor-help" />
                     </Tooltip>
                   </span>
@@ -218,7 +218,7 @@ export function DashboardPage() {
               <div className="border-t border-border/50 pt-4">
                 <h4 className="text-sm font-bold text-text-secondary mb-2 inline-flex items-center gap-1">
                   운영 모드
-                  <Tooltip content="완전 자동: 실제 경제 지표에 연동되어 자동 운영. 반자동: 자동 운영 + 교사 미세 조정 가능 (추천). 완전 수동: 교사가 모든 매개변수를 직접 관리.">
+                  <Tooltip content={"• 완전 자동: 실제 경제 지표에 연동되어 자동 운영\n• 반자동: 자동 운영 + 교사 미세 조정 가능 (추천)\n• 완전 수동: 교사가 모든 매개변수를 직접 관리"}>
                     <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
                   </Tooltip>
                 </h4>

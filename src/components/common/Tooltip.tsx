@@ -94,7 +94,7 @@ export function Tooltip({ children, content, position = 'bottom' }: TooltipProps
           onMouseEnter={showHover}
           onMouseLeave={hideHover}
           style={{ position: 'fixed', top: coords.top, left: coords.left }}
-          className="z-[9999] max-w-[calc(100vw-24px)] w-64 px-3 py-2 rounded-lg bg-text-primary text-surface text-xs leading-relaxed shadow-lg pointer-events-auto"
+          className="z-[9999] max-w-[calc(100vw-24px)] w-64 px-3 py-2 rounded-lg bg-text-primary text-surface text-xs leading-relaxed shadow-lg pointer-events-auto whitespace-pre-line"
         >
           {content}
         </div>,

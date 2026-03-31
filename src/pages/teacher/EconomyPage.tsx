@@ -194,7 +194,7 @@ function OverviewTab({ currency }: { currency: string }) {
         <Card>
           <p className="text-sm text-text-secondary font-bold inline-flex items-center gap-1">
             양극화 지수
-            <Tooltip content="지니계수는 학급 내 자산 불평등 정도를 0~1 사이 숫자로 나타냅니다. 0.3 이하면 양호, 0.4 이상이면 주의가 필요합니다.">
+            <Tooltip content={"지니계수는 학급 내 자산 불평등 정도를\n0~1 사이 숫자로 나타냅니다.\n\n0.3 이하면 양호\n0.4 이상이면 주의가 필요합니다."}>
               <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
             </Tooltip>
           </p>
@@ -214,7 +214,7 @@ function OverviewTab({ currency }: { currency: string }) {
             </Tooltip>
           </h3>
           <div className="flex items-center gap-2">
-            <Tooltip content="실제 증시의 '장 마감'과 같습니다. 누르면 현재가가 기준가로 저장되고, 등락률(%)이 0%로 리셋됩니다." position="top">
+            <Tooltip content={"실제 증시의 '장 마감'과 같습니다.\n누르면 현재가가 기준가로 저장되고,\n등락률(%)이 0%로 리셋됩니다."} position="top">
               <span><HiOutlineInformationCircle className="w-4 h-4 text-text-tertiary cursor-help" /></span>
             </Tooltip>
             <Button
@@ -338,7 +338,7 @@ function OverviewTab({ currency }: { currency: string }) {
                   <div>
                     <div className="flex items-center gap-1 mb-1.5">
                       <label className="text-sm font-semibold text-text-secondary">주당 영향률 (%)</label>
-                      <Tooltip content="학생이 1주를 매수/매도할 때 가격이 변하는 비율입니다." position="top">
+                      <Tooltip content={"학생이 1주를 매수/매도할 때\n가격이 변하는 비율입니다."} position="top">
                         <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
                       </Tooltip>
                     </div>
@@ -347,7 +347,7 @@ function OverviewTab({ currency }: { currency: string }) {
                   <div>
                     <div className="flex items-center gap-1 mb-1.5">
                       <label className="text-sm font-semibold text-text-secondary">최대 변동 상한 (%)</label>
-                      <Tooltip content="한 번의 거래로 가격이 최대 몇 %까지 변할 수 있는지의 제한입니다." position="top">
+                      <Tooltip content={"한 번의 거래로 가격이 최대 몇 %까지\n변할 수 있는지의 제한입니다."} position="top">
                         <HiOutlineInformationCircle className="w-3.5 h-3.5 text-text-tertiary cursor-help" />
                       </Tooltip>
                     </div>
