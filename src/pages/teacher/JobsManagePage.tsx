@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
@@ -10,10 +11,12 @@ import {
   useJobs, useJobAssignments, useCreateJob, useUpdateJob, useDeleteJob,
   usePaySalaries, useModuleConfigs, useUpdateModuleSettings,
 } from '@/hooks/useQueries'
+import { paySalaries, } from '@/lib/api/accounts'
+import { updateModuleSettings } from '@/lib/api/modules'
 import {
   HiOutlinePlusCircle, HiOutlinePencilSquare, HiOutlineTrash,
   HiOutlineUserGroup, HiOutlineBanknotes, HiOutlineCog6Tooth,
-  HiOutlineCheckCircle, HiOutlineXCircle,
+  HiOutlineCheckCircle, HiOutlineXCircle, HiOutlineNoSymbol,
 } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 import type { Job } from '@/types/database'
@@ -57,6 +60,31 @@ function getSeoulDayOfWeek(): number {
   return map[dow] ?? 1
 }
 
+function toDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function getLastScheduledPayday(schedule: PaySchedule): Date {
+  const today = getSeoulToday()
+
+  if (schedule.frequency === 'monthly') {
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), schedule.dayOfMonth)
+    if (thisMonth <= today) return thisMonth
+    return new Date(today.getFullYear(), today.getMonth() - 1, schedule.dayOfMonth)
+  }
+
+  const currentDay = getSeoulDayOfWeek()
+  let daysSince = currentDay - schedule.dayOfWeek
+  if (daysSince < 0) daysSince += 7
+  const lastPayWeekDay = new Date(today.getTime() - daysSince * 86400000)
+
+  if (schedule.frequency === 'weekly') return lastPayWeekDay
+
+  const weekNum = Math.floor((lastPayWeekDay.getTime() - new Date(lastPayWeekDay.getFullYear(), 0, 1).getTime()) / (7 * 86400000))
+  if (weekNum % 2 === 0) return lastPayWeekDay
+  return new Date(lastPayWeekDay.getTime() - 7 * 86400000)
+}
+
 function getNextPayday(schedule: PaySchedule): string {
   const today = getSeoulToday()
 
@@ -79,7 +107,9 @@ function getNextPayday(schedule: PaySchedule): string {
 
 export function JobsManagePage() {
   const { currentClassroom, user } = useAuthStore()
+  const classroomId = currentClassroom?.id
   const currency = currentClassroom?.currency_name || '미소'
+  const queryClient = useQueryClient()
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
@@ -100,21 +130,32 @@ export function JobsManagePage() {
   const updateSettingsMutation = useUpdateModuleSettings()
 
   const jobModuleConfig = moduleConfigs?.find((c) => c.module_name === 'job')
+  const jobSettings = jobModuleConfig?.settings_json as Record<string, unknown> | undefined
+
   const savedSchedule: PaySchedule = useMemo(() => {
-    const s = jobModuleConfig?.settings_json as Record<string, unknown> | undefined
-    if (s?.payFrequency) {
+    if (jobSettings?.payFrequency) {
       return {
-        frequency: (s.payFrequency as PayFrequency) || 'weekly',
-        dayOfWeek: (s.payDayOfWeek as number) || 5,
-        dayOfMonth: (s.payDayOfMonth as number) || 1,
+        frequency: (jobSettings.payFrequency as PayFrequency) || 'weekly',
+        dayOfWeek: (jobSettings.payDayOfWeek as number) || 5,
+        dayOfMonth: (jobSettings.payDayOfMonth as number) || 1,
       }
     }
     return DEFAULT_SCHEDULE
-  }, [jobModuleConfig])
+  }, [jobSettings])
+
+  const lastPaidAt = (jobSettings?.lastPaidAt as string) ?? null
+  const savedExcludedUserIds: string[] = useMemo(
+    () => (jobSettings?.excludedUserIds as string[]) ?? [],
+    [jobSettings],
+  )
 
   useEffect(() => {
     setScheduleForm(savedSchedule)
   }, [savedSchedule])
+
+  useEffect(() => {
+    setExcludedStudents(new Set(savedExcludedUserIds))
+  }, [savedExcludedUserIds])
 
   const assignedStudents = useMemo(() => {
     if (!assignments) return []
@@ -137,6 +178,58 @@ export function JobsManagePage() {
 
   const payCount = assignedStudents.length - excludedStudents.size
 
+  // ═══════════════════════════════════════════
+  // 자동 월급 지급
+  // ═══════════════════════════════════════════
+
+  const autoPayStatus = useRef<'idle' | 'running' | 'done'>('idle')
+
+  useEffect(() => {
+    if (autoPayStatus.current !== 'idle') return
+    if (!user || !classroomId || !moduleConfigs || assignedStudents.length === 0) return
+
+    const lastPayday = getLastScheduledPayday(savedSchedule)
+    const paydayStr = toDateStr(lastPayday)
+    const todayStr = toDateStr(getSeoulToday())
+
+    if (paydayStr > todayStr) return
+    if (lastPaidAt && lastPaidAt >= paydayStr) return
+
+    autoPayStatus.current = 'running'
+
+    const items = assignedStudents
+      .filter((s) => !savedExcludedUserIds.includes(s.userId))
+      .map((s) => ({ userId: s.userId, amount: s.salary, jobName: s.jobName }))
+
+    const run = async () => {
+      try {
+        if (items.length > 0) {
+          const total = items.reduce((sum, i) => sum + i.amount, 0)
+          await paySalaries(classroomId, items, user.id)
+          toast.success(`월급일! ${items.length}명에게 총 ${total.toLocaleString()}${currency} 자동 지급 완료`)
+        }
+        await updateModuleSettings(classroomId, 'job', { lastPaidAt: paydayStr, excludedUserIds: [] })
+        queryClient.invalidateQueries({ queryKey: ['accounts'] })
+        queryClient.invalidateQueries({ queryKey: ['transactions'] })
+        queryClient.invalidateQueries({ queryKey: ['my-account'] })
+        queryClient.invalidateQueries({ queryKey: ['account-stats'] })
+        queryClient.invalidateQueries({ queryKey: ['monthly-stats'] })
+        queryClient.invalidateQueries({ queryKey: ['module-configs'] })
+        autoPayStatus.current = 'done'
+      } catch {
+        autoPayStatus.current = 'idle'
+        toast.error('자동 월급 지급에 실패했습니다.')
+      }
+    }
+
+    run()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, classroomId, moduleConfigs, assignedStudents, savedSchedule, lastPaidAt, savedExcludedUserIds])
+
+  // ═══════════════════════════════════════════
+  // 핸들러
+  // ═══════════════════════════════════════════
+
   const getAssignments = (jobId: string) =>
     (assignments ?? []).filter((a: any) => a.job_id === jobId)
 
@@ -156,16 +249,18 @@ export function JobsManagePage() {
   }
 
   const openPayModal = () => {
-    setExcludedStudents(new Set())
     setShowPayModal(true)
   }
 
   const toggleExclude = (userId: string) => {
-    setExcludedStudents((prev) => {
-      const next = new Set(prev)
-      if (next.has(userId)) next.delete(userId)
-      else next.add(userId)
-      return next
+    const next = new Set(excludedStudents)
+    if (next.has(userId)) next.delete(userId)
+    else next.add(userId)
+    setExcludedStudents(next)
+
+    updateSettingsMutation.mutate({
+      moduleName: 'job',
+      settings: { excludedUserIds: [...next] },
     })
   }
 
@@ -227,7 +322,7 @@ export function JobsManagePage() {
   }
 
   const handlePaySalaries = async () => {
-    if (!user) return
+    if (!user || !classroomId) return
     const items = assignedStudents
       .filter((s) => !excludedStudents.has(s.userId))
       .map((s) => ({ userId: s.userId, amount: s.salary, jobName: s.jobName }))
@@ -239,7 +334,11 @@ export function JobsManagePage() {
 
     try {
       await paySalaryMutation.mutateAsync({ items, approvedBy: user.id })
-      toast.success(`${items.length}명에게 총 ${totalSalary}${currency} 월급 지급 완료!`)
+      await updateSettingsMutation.mutateAsync({
+        moduleName: 'job',
+        settings: { lastPaidAt: toDateStr(getSeoulToday()), excludedUserIds: [] },
+      })
+      toast.success(`${items.length}명에게 총 ${totalSalary.toLocaleString()}${currency} 월급 지급 완료!`)
       setShowPayModal(false)
     } catch {
       toast.error('월급 지급에 실패했습니다.')
@@ -308,6 +407,11 @@ export function JobsManagePage() {
             <div className="text-right">
               <p className="text-xs text-text-tertiary">다음 지급일</p>
               <p className="text-sm font-bold text-primary-600">{getNextPayday(savedSchedule)}</p>
+              {lastPaidAt && (
+                <p className="text-xs text-text-tertiary mt-0.5">
+                  마지막 지급: {lastPaidAt.replace(/-/g, '.')}
+                </p>
+              )}
             </div>
             <button
               className="p-2 hover:bg-white/60 rounded-xl transition-colors"
@@ -318,6 +422,35 @@ export function JobsManagePage() {
           </div>
         </div>
       </Card>
+
+      {/* 다음 월급 제외 학생 안내 */}
+      {excludedStudents.size > 0 && (
+        <Card className="bg-warning-50 border-warning-200/60">
+          <div className="flex items-center gap-3">
+            <HiOutlineNoSymbol className="w-5 h-5 text-warning-500 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-warning-700">
+                다음 월급에서 {excludedStudents.size}명 제외
+              </p>
+              <p className="text-xs text-warning-600 mt-0.5">
+                {assignedStudents
+                  .filter((s) => excludedStudents.has(s.userId))
+                  .map((s) => s.userName)
+                  .join(', ')}
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setExcludedStudents(new Set())
+                updateSettingsMutation.mutate({ moduleName: 'job', settings: { excludedUserIds: [] } })
+              }}
+              className="text-xs text-warning-600 hover:text-warning-800 font-medium px-2 py-1 rounded-lg hover:bg-warning-100 transition-colors"
+            >
+              전체 해제
+            </button>
+          </div>
+        </Card>
+      )}
 
       {allJobs.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -342,9 +475,23 @@ export function JobsManagePage() {
                     </div>
                     {assigned.length > 0 && (
                       <div className="flex gap-1 mt-2 flex-wrap">
-                        {assigned.map((a: any) => (
-                          <Badge key={a.id} variant="neutral">{a.user?.name}</Badge>
-                        ))}
+                        {assigned.map((a: any) => {
+                          const isExcluded = excludedStudents.has(a.user_id)
+                          return (
+                            <button
+                              key={a.id}
+                              onClick={() => toggleExclude(a.user_id)}
+                              title={isExcluded ? '월급 지급 대상으로 복원' : '다음 월급에서 제외'}
+                            >
+                              <Badge variant={isExcluded ? 'danger' : 'neutral'}>
+                                <span className={isExcluded ? 'line-through opacity-70' : ''}>
+                                  {a.user?.name}
+                                </span>
+                                {isExcluded && <HiOutlineNoSymbol className="w-3 h-3 ml-1" />}
+                              </Badge>
+                            </button>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
