@@ -45,7 +45,7 @@ export function TeacherLayout() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 bg-surface border-r border-border flex-col fixed h-full">
         <div className="p-5 border-b border-border">
-          <h1 className="text-xl font-bold text-primary-600">🏫 TaxPayer</h1>
+          <h1 className="text-xl font-bold text-primary-600">🏫 세금내는 아이들</h1>
           {currentClassroom && (
             <p className="text-sm text-text-secondary mt-1">
               {currentClassroom.school} {currentClassroom.grade}학년 {currentClassroom.class_num}반
@@ -104,7 +104,7 @@ export function TeacherLayout() {
               <HiBars3 className="w-6 h-6" />
             </button>
             <div>
-              <h1 className="text-base font-bold text-primary-600">🏫 TaxPayer</h1>
+              <h1 className="text-base font-bold text-primary-600">🏫 세금내는 아이들</h1>
               {currentClassroom && (
                 <p className="text-[11px] text-text-tertiary">
                   {currentClassroom.school} {currentClassroom.grade}학년 {currentClassroom.class_num}반
@@ -145,7 +145,7 @@ export function TeacherLayout() {
               className="lg:hidden fixed top-0 left-0 bottom-0 w-72 bg-surface z-50 flex flex-col shadow-xl safe-top"
             >
               <div className="flex items-center justify-between p-4 border-b border-border">
-                <h1 className="text-lg font-bold text-primary-600">🏫 TaxPayer</h1>
+                <h1 className="text-lg font-bold text-primary-600">🏫 세금내는 아이들</h1>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
                   className="p-2 rounded-xl hover:bg-surface-tertiary"

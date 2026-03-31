@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taxpayer-v1'
+const CACHE_NAME = 'setnae-v1'
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',

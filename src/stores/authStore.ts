@@ -63,7 +63,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'taxpayer-auth',
+      name: 'setnae-auth',
       partialize: (state) => ({
         user: state.user,
         currentClassroom: state.currentClassroom,
