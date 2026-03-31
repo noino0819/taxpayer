@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
@@ -6,28 +6,125 @@ import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
 import { Modal } from '@/components/common/Modal'
 import { useAuthStore } from '@/stores/authStore'
-import { useJobs, useJobAssignments, useCreateJob, useUpdateJob, useDeleteJob } from '@/hooks/useQueries'
-import { HiOutlinePlusCircle, HiOutlinePencilSquare, HiOutlineTrash, HiOutlineUserGroup } from 'react-icons/hi2'
+import {
+  useJobs, useJobAssignments, useCreateJob, useUpdateJob, useDeleteJob,
+  usePaySalaries, useModuleConfigs, useUpdateModuleSettings,
+} from '@/hooks/useQueries'
+import {
+  HiOutlinePlusCircle, HiOutlinePencilSquare, HiOutlineTrash,
+  HiOutlineUserGroup, HiOutlineBanknotes, HiOutlineCog6Tooth,
+  HiOutlineCheckCircle, HiOutlineXCircle,
+} from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 import type { Job } from '@/types/database'
 
 type JobFormData = { name: string; description: string; salary: string; maxCount: string }
 const emptyForm: JobFormData = { name: '', description: '', salary: '', maxCount: '' }
 
+const PAY_FREQUENCY_OPTIONS = [
+  { value: 'weekly', label: '매주' },
+  { value: 'biweekly', label: '격주' },
+  { value: 'monthly', label: '매월' },
+] as const
+
+const DAY_OF_WEEK_OPTIONS = [
+  { value: 1, label: '월요일' },
+  { value: 2, label: '화요일' },
+  { value: 3, label: '수요일' },
+  { value: 4, label: '목요일' },
+  { value: 5, label: '금요일' },
+] as const
+
+type PayFrequency = typeof PAY_FREQUENCY_OPTIONS[number]['value']
+
+interface PaySchedule {
+  frequency: PayFrequency
+  dayOfWeek: number
+  dayOfMonth: number
+}
+
+const DEFAULT_SCHEDULE: PaySchedule = { frequency: 'weekly', dayOfWeek: 5, dayOfMonth: 1 }
+
+function getNextPayday(schedule: PaySchedule): string {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  if (schedule.frequency === 'monthly') {
+    let target = new Date(today.getFullYear(), today.getMonth(), schedule.dayOfMonth)
+    if (target <= today) target = new Date(today.getFullYear(), today.getMonth() + 1, schedule.dayOfMonth)
+    return `${target.getMonth() + 1}월 ${target.getDate()}일`
+  }
+
+  const currentDay = today.getDay() === 0 ? 7 : today.getDay()
+  let daysUntil = schedule.dayOfWeek - currentDay
+  if (daysUntil <= 0) daysUntil += 7
+  if (schedule.frequency === 'biweekly') {
+    const weekNum = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))
+    if (weekNum % 2 !== 0 && daysUntil < 7) daysUntil += 7
+  }
+  const target = new Date(today.getTime() + daysUntil * 24 * 60 * 60 * 1000)
+  return `${target.getMonth() + 1}월 ${target.getDate()}일 (${DAY_OF_WEEK_OPTIONS.find((d) => d.value === schedule.dayOfWeek)?.label})`
+}
+
 export function JobsManagePage() {
-  const { currentClassroom } = useAuthStore()
+  const { currentClassroom, user } = useAuthStore()
   const currency = currentClassroom?.currency_name || '미소'
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
   const [deletingJob, setDeletingJob] = useState<Job | null>(null)
   const [formData, setFormData] = useState<JobFormData>(emptyForm)
+  const [showPayModal, setShowPayModal] = useState(false)
+  const [showScheduleModal, setShowScheduleModal] = useState(false)
+  const [excludedStudents, setExcludedStudents] = useState<Set<string>>(new Set())
+  const [scheduleForm, setScheduleForm] = useState<PaySchedule>(DEFAULT_SCHEDULE)
 
   const { data: jobs } = useJobs()
   const { data: assignments } = useJobAssignments()
+  const { data: moduleConfigs } = useModuleConfigs()
   const createMutation = useCreateJob()
   const updateMutation = useUpdateJob()
   const deleteMutation = useDeleteJob()
+  const paySalaryMutation = usePaySalaries()
+  const updateSettingsMutation = useUpdateModuleSettings()
+
+  const jobModuleConfig = moduleConfigs?.find((c) => c.module_name === 'job')
+  const savedSchedule: PaySchedule = useMemo(() => {
+    const s = jobModuleConfig?.settings_json as Record<string, unknown> | undefined
+    if (s?.payFrequency) {
+      return {
+        frequency: (s.payFrequency as PayFrequency) || 'weekly',
+        dayOfWeek: (s.payDayOfWeek as number) || 5,
+        dayOfMonth: (s.payDayOfMonth as number) || 1,
+      }
+    }
+    return DEFAULT_SCHEDULE
+  }, [jobModuleConfig])
+
+  useEffect(() => {
+    setScheduleForm(savedSchedule)
+  }, [savedSchedule])
+
+  const assignedStudents = useMemo(() => {
+    if (!assignments) return []
+    return assignments.map((a: any) => ({
+      assignmentId: a.id,
+      userId: a.user_id,
+      userName: a.user?.name ?? '알 수 없음',
+      avatar: a.user?.avatar_preset_id ?? '😊',
+      jobId: a.job_id,
+      jobName: a.job?.name ?? '',
+      salary: a.job?.salary ?? 0,
+    }))
+  }, [assignments])
+
+  const totalSalary = useMemo(() => {
+    return assignedStudents
+      .filter((s) => !excludedStudents.has(s.userId))
+      .reduce((sum, s) => sum + s.salary, 0)
+  }, [assignedStudents, excludedStudents])
+
+  const payCount = assignedStudents.length - excludedStudents.size
 
   const getAssignments = (jobId: string) =>
     (assignments ?? []).filter((a: any) => a.job_id === jobId)
@@ -45,6 +142,20 @@ export function JobsManagePage() {
       maxCount: String(job.max_count),
     })
     setEditingJob(job)
+  }
+
+  const openPayModal = () => {
+    setExcludedStudents(new Set())
+    setShowPayModal(true)
+  }
+
+  const toggleExclude = (userId: string) => {
+    setExcludedStudents((prev) => {
+      const next = new Set(prev)
+      if (next.has(userId)) next.delete(userId)
+      else next.add(userId)
+      return next
+    })
   }
 
   const handleCreate = async () => {
@@ -104,6 +215,43 @@ export function JobsManagePage() {
     }
   }
 
+  const handlePaySalaries = async () => {
+    if (!user) return
+    const items = assignedStudents
+      .filter((s) => !excludedStudents.has(s.userId))
+      .map((s) => ({ userId: s.userId, amount: s.salary, jobName: s.jobName }))
+
+    if (items.length === 0) {
+      toast.error('지급할 학생이 없습니다.')
+      return
+    }
+
+    try {
+      await paySalaryMutation.mutateAsync({ items, approvedBy: user.id })
+      toast.success(`${items.length}명에게 총 ${totalSalary}${currency} 월급 지급 완료!`)
+      setShowPayModal(false)
+    } catch {
+      toast.error('월급 지급에 실패했습니다.')
+    }
+  }
+
+  const handleSaveSchedule = async () => {
+    try {
+      await updateSettingsMutation.mutateAsync({
+        moduleName: 'job',
+        settings: {
+          payFrequency: scheduleForm.frequency,
+          payDayOfWeek: scheduleForm.dayOfWeek,
+          payDayOfMonth: scheduleForm.dayOfMonth,
+        },
+      })
+      toast.success('월급 지급 주기가 저장되었습니다.')
+      setShowScheduleModal(false)
+    } catch {
+      toast.error('설정 저장에 실패했습니다.')
+    }
+  }
+
   const allJobs = jobs ?? []
 
   return (
@@ -113,10 +261,52 @@ export function JobsManagePage() {
           <h1 className="text-2xl font-extrabold">직업 관리</h1>
           <p className="text-text-secondary text-sm mt-1 font-bold">직업 생성, 수정, 배정, 월급 설정</p>
         </div>
-        <Button icon={<HiOutlinePlusCircle className="w-5 h-5" />} onClick={openCreateModal}>
-          직업 추가
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="accent"
+            icon={<HiOutlineBanknotes className="w-5 h-5" />}
+            onClick={openPayModal}
+            disabled={assignedStudents.length === 0}
+          >
+            월급 지급
+          </Button>
+          <Button icon={<HiOutlinePlusCircle className="w-5 h-5" />} onClick={openCreateModal}>
+            직업 추가
+          </Button>
+        </div>
       </div>
+
+      {/* 월급 지급 주기 카드 */}
+      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-border/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-primary-100 flex items-center justify-center">
+              <HiOutlineBanknotes className="w-5 h-5 text-primary-600" />
+            </div>
+            <div>
+              <p className="text-sm text-text-secondary font-bold">월급 지급 주기</p>
+              <p className="text-base font-bold">
+                {PAY_FREQUENCY_OPTIONS.find((o) => o.value === savedSchedule.frequency)?.label}{' '}
+                {savedSchedule.frequency === 'monthly'
+                  ? `${savedSchedule.dayOfMonth}일`
+                  : DAY_OF_WEEK_OPTIONS.find((d) => d.value === savedSchedule.dayOfWeek)?.label}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-xs text-text-tertiary">다음 지급일</p>
+              <p className="text-sm font-bold text-primary-600">{getNextPayday(savedSchedule)}</p>
+            </div>
+            <button
+              className="p-2 hover:bg-white/60 rounded-xl transition-colors"
+              onClick={() => setShowScheduleModal(true)}
+            >
+              <HiOutlineCog6Tooth className="w-5 h-5 text-text-tertiary" />
+            </button>
+          </div>
+        </div>
+      </Card>
 
       {allJobs.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -265,6 +455,156 @@ export function JobsManagePage() {
               삭제
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* 월급 지급 모달 */}
+      <Modal isOpen={showPayModal} onClose={() => setShowPayModal(false)} title="월급 지급" size="lg">
+        <div className="space-y-4">
+          {assignedStudents.length === 0 ? (
+            <p className="text-sm text-text-tertiary text-center py-6">
+              배정된 학생이 없습니다. 먼저 직업을 배정해주세요.
+            </p>
+          ) : (
+            <>
+              <p className="text-sm text-text-secondary">
+                직업이 배정된 학생 목록입니다. 제대로 일하지 않은 학생은 선택 해제하세요.
+              </p>
+              <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                {assignedStudents.map((student) => {
+                  const isIncluded = !excludedStudents.has(student.userId)
+                  return (
+                    <button
+                      key={student.assignmentId}
+                      onClick={() => toggleExclude(student.userId)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all ${
+                        isIncluded
+                          ? 'border-primary-200 bg-primary-50/50'
+                          : 'border-border/50 bg-surface-secondary opacity-50'
+                      }`}
+                    >
+                      {isIncluded ? (
+                        <HiOutlineCheckCircle className="w-5 h-5 text-primary-500 shrink-0" />
+                      ) : (
+                        <HiOutlineXCircle className="w-5 h-5 text-text-tertiary shrink-0" />
+                      )}
+                      <span className="text-xl shrink-0">{student.avatar}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">{student.userName}</p>
+                        <p className="text-xs text-text-tertiary">{student.jobName}</p>
+                      </div>
+                      <span className={`text-sm font-bold shrink-0 ${isIncluded ? 'text-primary-600' : 'text-text-tertiary line-through'}`}>
+                        {student.salary}{currency}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-2xl">
+                <div>
+                  <p className="text-xs text-text-tertiary">지급 대상</p>
+                  <p className="font-bold">{payCount}명 / {assignedStudents.length}명</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-text-tertiary">총 지급액</p>
+                  <p className="text-lg font-extrabold text-primary-600">{totalSalary.toLocaleString()}{currency}</p>
+                </div>
+              </div>
+
+              {excludedStudents.size > 0 && (
+                <p className="text-xs text-warning-500 font-medium text-center">
+                  {excludedStudents.size}명의 학생이 이번 월급에서 제외됩니다.
+                </p>
+              )}
+
+              <Button
+                className="w-full"
+                variant="accent"
+                icon={<HiOutlineBanknotes className="w-5 h-5" />}
+                onClick={handlePaySalaries}
+                isLoading={paySalaryMutation.isPending}
+                disabled={payCount === 0}
+              >
+                {payCount}명에게 월급 지급
+              </Button>
+            </>
+          )}
+        </div>
+      </Modal>
+
+      {/* 월급 주기 설정 모달 */}
+      <Modal isOpen={showScheduleModal} onClose={() => setShowScheduleModal(false)} title="월급 지급 주기 설정">
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-text-secondary mb-2 block">지급 주기</label>
+            <div className="grid grid-cols-3 gap-2">
+              {PAY_FREQUENCY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setScheduleForm({ ...scheduleForm, frequency: opt.value })}
+                  className={`py-2.5 px-3 rounded-2xl border text-sm font-medium transition-all ${
+                    scheduleForm.frequency === opt.value
+                      ? 'border-primary-400 bg-primary-50 text-primary-700'
+                      : 'border-border/50 hover:bg-surface-tertiary text-text-secondary'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {scheduleForm.frequency === 'monthly' ? (
+            <div>
+              <label className="text-sm font-medium text-text-secondary mb-2 block">지급일</label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-text-secondary">매월</span>
+                <Input
+                  type="number"
+                  value={String(scheduleForm.dayOfMonth)}
+                  onChange={(e) => {
+                    const v = Math.min(28, Math.max(1, Number(e.target.value)))
+                    setScheduleForm({ ...scheduleForm, dayOfMonth: v })
+                  }}
+                  className="w-20"
+                />
+                <span className="text-sm text-text-secondary">일</span>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className="text-sm font-medium text-text-secondary mb-2 block">지급 요일</label>
+              <div className="grid grid-cols-5 gap-2">
+                {DAY_OF_WEEK_OPTIONS.map((day) => (
+                  <button
+                    key={day.value}
+                    onClick={() => setScheduleForm({ ...scheduleForm, dayOfWeek: day.value })}
+                    className={`py-2.5 px-2 rounded-2xl border text-sm font-medium transition-all ${
+                      scheduleForm.dayOfWeek === day.value
+                        ? 'border-primary-400 bg-primary-50 text-primary-700'
+                        : 'border-border/50 hover:bg-surface-tertiary text-text-secondary'
+                    }`}
+                  >
+                    {day.label.replace('요일', '')}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="p-3 bg-surface-secondary rounded-2xl text-center">
+            <p className="text-xs text-text-tertiary">다음 예정 지급일</p>
+            <p className="text-sm font-bold text-primary-600 mt-1">{getNextPayday(scheduleForm)}</p>
+          </div>
+
+          <Button
+            className="w-full"
+            onClick={handleSaveSchedule}
+            isLoading={updateSettingsMutation.isPending}
+          >
+            저장
+          </Button>
         </div>
       </Modal>
     </motion.div>

@@ -26,6 +26,24 @@ export async function toggleModule(classroomId: string, moduleName: ModuleName, 
   })
 }
 
+export async function updateModuleSettings(classroomId: string, moduleName: ModuleName, settings: Record<string, unknown>): Promise<void> {
+  const { data: existing } = await supabase
+    .from('module_configs')
+    .select('settings_json')
+    .eq('classroom_id', classroomId)
+    .eq('module_name', moduleName)
+    .maybeSingle()
+
+  const merged = { ...(existing?.settings_json ?? {}), ...settings }
+
+  await supabase
+    .from('module_configs')
+    .upsert(
+      { classroom_id: classroomId, module_name: moduleName, settings_json: merged, updated_at: new Date().toISOString() },
+      { onConflict: 'classroom_id,module_name' },
+    )
+}
+
 export async function batchSetModules(classroomId: string, modules: Record<ModuleName, boolean>, userId: string): Promise<void> {
   const configs = Object.entries(modules).map(([name, enabled]) => ({
     classroom_id: classroomId,

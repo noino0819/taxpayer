@@ -178,6 +178,44 @@ export async function getAccountStats(classroomId: string) {
   return { totalBalance, avgBalance, studentCount: n, giniIndex }
 }
 
+export async function paySalaries(
+  classroomId: string,
+  items: { userId: string; amount: number; jobName: string }[],
+  approvedBy: string,
+) {
+  if (items.length === 0) throw new Error('지급 대상이 없습니다.')
+
+  const userIds = items.map((i) => i.userId)
+  const { data: accounts, error } = await supabase
+    .from('accounts')
+    .select('id, user_id')
+    .eq('classroom_id', classroomId)
+    .in('user_id', userIds)
+
+  if (error) throw error
+  if (!accounts || accounts.length === 0) throw new Error('학생 계좌를 찾을 수 없습니다.')
+
+  const accountMap = new Map(accounts.map((a) => [a.user_id, a.id]))
+
+  const txns = items
+    .filter((item) => accountMap.has(item.userId))
+    .map((item) => ({
+      account_id: accountMap.get(item.userId)!,
+      type: 'income' as const,
+      category: 'salary' as const,
+      amount: item.amount,
+      description: `${item.jobName} 월급`,
+      approved_by: approvedBy,
+    }))
+
+  const { error: txError } = await supabase.from('transactions').insert(txns)
+  if (txError) throw txError
+
+  for (const txn of txns) {
+    await supabase.rpc('update_balance', { p_account_id: txn.account_id, p_amount: txn.amount })
+  }
+}
+
 export async function getMonthlyStats(accountId: string) {
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
