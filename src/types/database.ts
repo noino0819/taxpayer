@@ -36,7 +36,7 @@ export interface Classroom {
   name: string
   school: string
   grade: number
-  class_num: number
+  class_num: string
   semester: number
   teacher_id: string
   currency_name: string

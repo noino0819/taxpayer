@@ -8,12 +8,12 @@ function generateInviteCode(): string {
 
 export async function createClassroom(
   teacherId: string,
-  data: { school: string; grade: number; classNum: number; currencyName?: string; initialBalance?: number },
+  data: { school: string; grade: number; classNum: string; currencyName?: string; initialBalance?: number },
 ): Promise<Classroom> {
   const { data: classroom, error } = await supabase
     .from('classrooms')
     .insert({
-      name: `${data.grade}-${data.classNum}`,
+      name: `${data.grade}학년 ${data.classNum}반`,
       school: data.school,
       grade: data.grade,
       class_num: data.classNum,

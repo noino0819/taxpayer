@@ -45,7 +45,7 @@ export function TeacherLayout() {
           <h1 className="text-xl font-bold text-primary-600">🏫 TaxPayer</h1>
           {currentClassroom && (
             <p className="text-sm text-text-secondary mt-1">
-              {currentClassroom.school} {currentClassroom.grade}-{currentClassroom.class_num}
+              {currentClassroom.school} {currentClassroom.grade}학년 {currentClassroom.class_num}반
             </p>
           )}
         </div>
@@ -104,7 +104,7 @@ export function TeacherLayout() {
               <h1 className="text-base font-bold text-primary-600">🏫 TaxPayer</h1>
               {currentClassroom && (
                 <p className="text-[11px] text-text-tertiary">
-                  {currentClassroom.school} {currentClassroom.grade}-{currentClassroom.class_num}
+                  {currentClassroom.school} {currentClassroom.grade}학년 {currentClassroom.class_num}반
                 </p>
               )}
             </div>

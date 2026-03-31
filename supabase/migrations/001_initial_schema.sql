@@ -58,7 +58,7 @@ CREATE TABLE classrooms (
   name TEXT NOT NULL,
   school TEXT NOT NULL,
   grade INT NOT NULL CHECK (grade BETWEEN 1 AND 6),
-  class_num INT NOT NULL CHECK (class_num >= 1),
+  class_num TEXT NOT NULL,
   semester INT NOT NULL DEFAULT 1,
   teacher_id UUID NOT NULL REFERENCES users(id),
   currency_name TEXT NOT NULL DEFAULT '미소',

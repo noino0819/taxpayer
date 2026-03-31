@@ -36,7 +36,7 @@ export function StudentLayout() {
           <div>
             <h2 className="text-base font-bold">{user?.name}</h2>
             <p className="text-[11px] text-text-tertiary leading-none mt-0.5">
-              {currentClassroom?.school} {currentClassroom?.grade}-{currentClassroom?.class_num}
+              {currentClassroom?.school} {currentClassroom?.grade}학년 {currentClassroom?.class_num}반
             </p>
           </div>
         </div>

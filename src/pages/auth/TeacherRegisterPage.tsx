@@ -46,7 +46,7 @@ export function TeacherRegisterPage() {
       const classroom = await createClassroom(user.id, {
         school: form.school,
         grade: Number(form.grade),
-        classNum: Number(form.classNum),
+        classNum: form.classNum,
       })
 
       await seedClassroomData(classroom.id, classroom.currency_unit)
@@ -131,10 +131,7 @@ export function TeacherRegisterPage() {
                   />
                   <Input
                     label="반"
-                    type="number"
-                    placeholder="3"
-                    min={1}
-                    max={20}
+                    placeholder="3 또는 솔"
                     value={form.classNum}
                     onChange={(e) => updateForm('classNum', e.target.value)}
                     required
