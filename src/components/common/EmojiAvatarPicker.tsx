@@ -30,7 +30,7 @@ export function EmojiAvatarPicker({ value, onChange, size = 'md' }: EmojiAvatarP
     <div className="space-y-2">
       <div
         ref={tabsRef}
-        className="flex gap-1 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1"
+        className="flex gap-1 overflow-x-auto no-scrollbar py-1 -mx-1 px-1"
       >
         {EMOJI_CATEGORIES.map((cat) => (
           <button
