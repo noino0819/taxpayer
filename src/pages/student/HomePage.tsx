@@ -75,15 +75,15 @@ export function HomePage() {
 
       <div>
         <h3 className="text-sm font-semibold text-text-secondary mb-3">바로가기</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2.5">
           {quickActions.map((action) => (
             <motion.button
               key={action.label}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate(action.to)}
-              className="flex flex-col items-center gap-2 p-4 bg-surface rounded-2xl border border-border hover:shadow-sm transition-shadow"
+              className="flex flex-col items-center gap-1.5 py-4 px-2 bg-surface rounded-2xl border border-border active:bg-surface-tertiary transition-colors min-h-[80px]"
             >
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${action.color}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${action.color}`}>
                 <action.icon className="w-6 h-6" />
               </div>
               <span className="text-xs font-medium text-text-primary">{action.label}</span>

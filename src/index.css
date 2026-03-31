@@ -59,6 +59,9 @@
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: contain;
   }
 
   body {
@@ -66,11 +69,50 @@
     color: var(--color-text-primary);
     background-color: var(--color-surface-secondary);
     min-height: 100dvh;
+    overscroll-behavior-y: contain;
   }
 
   #root {
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
+  }
+
+  /* iOS safe area insets */
+  .safe-top { padding-top: env(safe-area-inset-top, 0px); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-left { padding-left: env(safe-area-inset-left, 0px); }
+  .safe-right { padding-right: env(safe-area-inset-right, 0px); }
+
+  /* 모바일 터치 최적화 */
+  button, a, [role="button"] {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input, textarea, select {
+    font-size: 16px; /* iOS 줌 방지 */
+  }
+
+  /* 모바일 스크롤바 숨기기 */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Pull-to-refresh 차단 (PWA에서 불필요한 네이티브 제스처 방지) */
+  @media (display-mode: standalone) {
+    body {
+      overscroll-behavior-y: contain;
+    }
+  }
+
+  /* Standalone PWA 모드에서 상태바 영역 고려 */
+  @media (display-mode: standalone) {
+    .pwa-header {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    .pwa-bottom-nav {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
   }
 }
