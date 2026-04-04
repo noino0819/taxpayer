@@ -151,9 +151,13 @@ export async function signUpStudent(loginId: string, name: string, password: str
   const { error: memError } = await supabase
     .from('memberships')
     .insert({ user_id: user.id, classroom_id: classroom.id, status: 'pending' })
-  if (memError) throw memError
+  if (memError) throw new Error(memError.message || '학급 참여 신청에 실패했습니다.')
 
-  await recordPrivacyConsent(user.id)
+  try {
+    await recordPrivacyConsent(user.id)
+  } catch {
+    // 개인정보 동의 기록 실패는 가입 자체를 차단하지 않음
+  }
   return user as User
 }
 

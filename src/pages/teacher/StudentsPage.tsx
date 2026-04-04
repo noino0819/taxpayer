@@ -22,7 +22,7 @@ export function StudentsPage() {
 
   const { data: members } = useClassroomMembers()
   const { data: accounts } = useAllAccounts()
-  const { data: pendingMembers } = usePendingMembers()
+  const { data: pendingMembers, error: pendingError } = usePendingMembers()
   const depositMutation = useDeposit()
   const withdrawMutation = useWithdraw()
   const approveMutation = useApproveStudent()
@@ -90,6 +90,14 @@ export function StudentsPage() {
           학생 추가
         </Button>
       </div>
+
+      {pendingError && (
+        <div className="bg-danger-50 border border-danger-200 rounded-2xl p-4">
+          <p className="text-sm text-danger-700 font-medium">
+            가입 대기 목록을 불러오지 못했습니다. 페이지를 새로고침해 주세요.
+          </p>
+        </div>
+      )}
 
       <AnimatePresence>
         {(pendingMembers ?? []).length > 0 && (
