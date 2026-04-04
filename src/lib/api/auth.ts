@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { User, PrivacyConsent, PolicyDocument } from '@/types/database'
+import type { User, Classroom, PrivacyConsent, PolicyDocument } from '@/types/database'
 import { getCurrentPolicies } from '@/lib/api/policies'
 
 export async function recordPrivacyConsent(userId: string, policyDocs?: PolicyDocument[]) {
@@ -61,34 +61,52 @@ export async function signInTeacher(email: string, password: string) {
   return data as User
 }
 
-export async function signInStudent(loginId: string, inviteCode: string, password: string) {
-  const { data: classroom, error: classError } = await supabase
-    .from('classrooms')
-    .select('id')
-    .eq('invite_code', inviteCode)
-    .eq('status', 'active')
-    .single()
-  if (classError) throw new Error('유효하지 않은 초대 코드입니다.')
-
+export async function signInStudent(loginId: string, password: string): Promise<{ user: User; classroom: Classroom }> {
   const { data: user, error: userError } = await supabase
     .from('users')
-    .select('*, memberships!inner(classroom_id, status)')
+    .select('*')
     .eq('login_id', loginId)
     .eq('password', password)
     .eq('role', 'student')
-    .eq('memberships.classroom_id', classroom.id)
     .single()
   if (userError) throw new Error('아이디 또는 비밀번호가 일치하지 않습니다.')
 
-  const membership = (user as any).memberships?.[0]
-  if (membership?.status === 'pending') {
+  const { data: memberships, error: memError } = await supabase
+    .from('memberships')
+    .select('classroom_id, status, joined_at')
+    .eq('user_id', user.id)
+  if (memError) throw memError
+  if (!memberships?.length) {
+    throw new Error('참여 중인 학급이 없습니다. 학급 코드로 가입 신청을 먼저 해주세요.')
+  }
+
+  const activeMemberships = memberships
+    .filter((m) => m.status === 'active')
+    .sort((a, b) => (b.joined_at ?? '').localeCompare(a.joined_at ?? ''))
+  const pendingMemberships = memberships.filter((m) => m.status === 'pending')
+  const inactiveMemberships = memberships.filter((m) => m.status === 'inactive')
+
+  if (activeMemberships.length > 0) {
+    const classroomId = activeMemberships[0].classroom_id
+    const { data: classroom, error: cErr } = await supabase
+      .from('classrooms')
+      .select('*')
+      .eq('id', classroomId)
+      .eq('status', 'active')
+      .single()
+    if (cErr || !classroom) throw new Error('학급 정보를 불러올 수 없습니다.')
+    return { user: user as User, classroom: classroom as Classroom }
+  }
+
+  if (pendingMemberships.length > 0) {
     throw new Error('PENDING_APPROVAL')
   }
-  if (membership?.status === 'inactive') {
+
+  if (inactiveMemberships.length > 0) {
     throw new Error('가입이 거절되었습니다. 선생님에게 문의하세요.')
   }
 
-  return user as User
+  throw new Error('참여 중인 학급이 없습니다.')
 }
 
 export async function signUpStudent(loginId: string, name: string, password: string, inviteCode: string, avatarEmoji: string) {
@@ -144,6 +162,26 @@ export async function getPendingMembers(classroomId: string) {
     .from('memberships')
     .select('*, user:users(*)')
     .eq('classroom_id', classroomId)
+    .eq('status', 'pending')
+    .order('joined_at', { ascending: true })
+  if (error) throw error
+  return data as (import('@/types/database').Membership & { user: User })[]
+}
+
+export async function getAllPendingMembersForTeacher(teacherId: string) {
+  const { data: classrooms, error: cErr } = await supabase
+    .from('classrooms')
+    .select('id')
+    .eq('teacher_id', teacherId)
+    .eq('status', 'active')
+  if (cErr) throw cErr
+  const ids = (classrooms ?? []).map((c) => c.id)
+  if (ids.length === 0) return [] as (import('@/types/database').Membership & { user: User })[]
+
+  const { data, error } = await supabase
+    .from('memberships')
+    .select('*, user:users(*)')
+    .in('classroom_id', ids)
     .eq('status', 'pending')
     .order('joined_at', { ascending: true })
   if (error) throw error

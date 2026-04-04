@@ -6,7 +6,7 @@ import { Input } from '@/components/common/Input'
 import { BrandLogo } from '@/components/common/BrandLogo'
 import { useAuthStore } from '@/stores/authStore'
 import { signInTeacher, signInStudent } from '@/lib/api/auth'
-import { getTeacherClassrooms, getClassroomByInviteCode } from '@/lib/api/classrooms'
+import { getTeacherClassrooms } from '@/lib/api/classrooms'
 import { HiOutlineEnvelope, HiOutlineLockClosed } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
@@ -19,16 +19,13 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [studentLoginId, setStudentLoginId] = useState('')
   const [studentPassword, setStudentPassword] = useState('')
-  const [inviteCode, setInviteCode] = useState(searchParams.get('code')?.toUpperCase() || '')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { setUser, setCurrentClassroom } = useAuthStore()
 
   useEffect(() => {
     const tab = searchParams.get('tab')
-    const code = searchParams.get('code')
     if (tab === 'student') setLoginType('student')
-    if (code) setInviteCode(code.toUpperCase())
   }, [searchParams])
 
   const handleTeacherLogin = async (e: React.FormEvent) => {
@@ -59,10 +56,8 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      const user = await signInStudent(studentLoginId, inviteCode, studentPassword)
+      const { user, classroom } = await signInStudent(studentLoginId, studentPassword)
       setUser(user)
-
-      const classroom = await getClassroomByInviteCode(inviteCode)
       setCurrentClassroom(classroom)
 
       if (user.must_change_password) {
@@ -185,14 +180,6 @@ export function LoginPage() {
                   required
                 />
                 <Input
-                  label="학급 초대 코드"
-                  placeholder="6자리 코드를 입력하세요"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                  maxLength={6}
-                  required
-                />
-                <Input
                   label="비밀번호"
                   type="password"
                   placeholder="비밀번호를 입력하세요"
@@ -205,7 +192,7 @@ export function LoginPage() {
                 </Button>
                 <div className="text-center">
                   <Link
-                    to={`/register/student${inviteCode ? `?code=${inviteCode}` : ''}`}
+                    to="/register/student"
                     className="text-sm text-primary-500 hover:underline"
                   >
                     처음이에요! 학급 참여하기

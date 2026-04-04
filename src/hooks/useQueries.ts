@@ -43,10 +43,16 @@ export function useClassroomMembers() {
 
 export function usePendingMembers() {
   const classroomId = useClassroomId()
+  const user = useAuthStore((s) => s.user)
+  const isTeacher = user?.role === 'teacher'
+
   return useQuery({
-    queryKey: ['pending-members', classroomId],
-    queryFn: () => api.getPendingMembers(classroomId!),
-    enabled: !!classroomId,
+    queryKey: isTeacher ? ['pending-members', 'teacher', user?.id] : ['pending-members', classroomId],
+    queryFn: () =>
+      isTeacher && user?.id
+        ? api.getAllPendingMembersForTeacher(user.id)
+        : api.getPendingMembers(classroomId!),
+    enabled: isTeacher ? !!user?.id : !!classroomId,
     refetchInterval: 15_000,
   })
 }
@@ -55,8 +61,8 @@ export function useApproveStudent() {
   const qc = useQueryClient()
   const classroomId = useClassroomId()
   return useMutation({
-    mutationFn: (params: { membershipId: string; userId: string }) =>
-      api.approveStudent(params.membershipId, classroomId!, params.userId),
+    mutationFn: (params: { membershipId: string; userId: string; classroomId?: string }) =>
+      api.approveStudent(params.membershipId, params.classroomId ?? classroomId!, params.userId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['pending-members'] })
       qc.invalidateQueries({ queryKey: ['classroom-members'] })

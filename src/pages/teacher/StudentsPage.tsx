@@ -146,6 +146,7 @@ export function StudentsPage() {
                             await approveMutation.mutateAsync({
                               membershipId: m.id,
                               userId: m.user_id,
+                              classroomId: m.classroom_id,
                             })
                             toast.success(`${m.user?.name}의 가입을 승인했습니다!`)
                           } catch {
