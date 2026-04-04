@@ -8,7 +8,7 @@ import { Modal } from '@/components/common/Modal'
 import { useAuthStore } from '@/stores/authStore'
 import { useClassroomMembers, useAllAccounts, useDeposit, useWithdraw, usePendingMembers, useApproveStudent, useRejectStudent, useResetStudentPassword } from '@/hooks/useQueries'
 import { CREDIT_GRADES } from '@/lib/constants'
-import { HiOutlineMagnifyingGlass, HiOutlinePlusCircle, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlineKey } from 'react-icons/hi2'
+import { HiOutlineMagnifyingGlass, HiOutlinePlusCircle, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlineKey, HiOutlineArrowPath } from 'react-icons/hi2'
 import toast from 'react-hot-toast'
 
 export function StudentsPage() {
@@ -22,7 +22,7 @@ export function StudentsPage() {
 
   const { data: members } = useClassroomMembers()
   const { data: accounts } = useAllAccounts()
-  const { data: pendingMembers, error: pendingError } = usePendingMembers()
+  const { data: pendingMembers, error: pendingError, refetch: refetchPending, isFetching: isPendingFetching } = usePendingMembers()
   const depositMutation = useDeposit()
   const withdrawMutation = useWithdraw()
   const approveMutation = useApproveStudent()
@@ -92,10 +92,16 @@ export function StudentsPage() {
       </div>
 
       {pendingError && (
-        <div className="bg-danger-50 border border-danger-200 rounded-2xl p-4">
+        <div className="bg-danger-50 border border-danger-200 rounded-2xl p-4 flex items-center justify-between">
           <p className="text-sm text-danger-700 font-medium">
-            가입 대기 목록을 불러오지 못했습니다. 페이지를 새로고침해 주세요.
+            가입 대기 목록을 불러오지 못했습니다.
           </p>
+          <button
+            onClick={() => refetchPending()}
+            className="text-danger-600 hover:text-danger-800 transition-colors p-1"
+          >
+            <HiOutlineArrowPath className={`w-5 h-5 ${isPendingFetching ? 'animate-spin' : ''}`} />
+          </button>
         </div>
       )}
 
@@ -108,11 +114,20 @@ export function StudentsPage() {
             className="overflow-hidden"
           >
             <div className="bg-warning-50 border border-warning-200 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">⏳</span>
-                <h3 className="font-bold text-warning-800">
-                  가입 승인 대기 ({pendingMembers!.length}명)
-                </h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">⏳</span>
+                  <h3 className="font-bold text-warning-800">
+                    가입 승인 대기 ({pendingMembers!.length}명)
+                  </h3>
+                </div>
+                <button
+                  onClick={() => refetchPending()}
+                  className="text-warning-600 hover:text-warning-800 transition-colors p-1.5 rounded-xl hover:bg-warning-100"
+                  title="새로고침"
+                >
+                  <HiOutlineArrowPath className={`w-4.5 h-4.5 ${isPendingFetching ? 'animate-spin' : ''}`} />
+                </button>
               </div>
               <div className="space-y-2">
                 {pendingMembers!.map((m) => (

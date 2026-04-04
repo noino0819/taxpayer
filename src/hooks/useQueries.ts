@@ -53,7 +53,10 @@ export function usePendingMembers() {
         ? api.getAllPendingMembersForTeacher(user.id)
         : api.getPendingMembers(classroomId!),
     enabled: isTeacher ? !!user?.id : !!classroomId,
-    refetchInterval: 15_000,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+    refetchInterval: 10_000,
   })
 }
 
